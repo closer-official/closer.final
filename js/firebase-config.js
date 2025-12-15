@@ -1,4 +1,4 @@
-// Firebaseの機能をインポート（ブラウザ用CDN経由）
+// ▼▼▼ ここを修正しました（URL形式に変更） ▼▼▼
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } 
@@ -6,7 +6,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// あなたのFirebase設定
+// ▼▼▼ あなたの鍵情報（そのまま使います） ▼▼▼
 const firebaseConfig = {
   apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
   authDomain: "closer-official.firebaseapp.com",
@@ -23,5 +23,5 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 便利な機能を他のファイル（index.htmlなど）でも使えるように配る
+// 機能を配る
 export { auth, db, analytics, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp };
