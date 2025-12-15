@@ -8,7 +8,7 @@ import {
     signOut, 
     updateProfile,
     GoogleAuthProvider, 
-    signInWithRedirect, // 追加：画面遷移でログイン
+    signInWithPopup, // 追加：画面遷移でログイン
     getRedirectResult   // 追加：戻ってきた時の処理
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -57,6 +57,6 @@ export {
     updateDoc, 
     increment,
     GoogleAuthProvider, 
-    signInWithRedirect, // 輸出
+    signInWithPopup, // 輸出
     getRedirectResult   // 輸出
 };

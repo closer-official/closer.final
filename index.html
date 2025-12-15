@@ -109,7 +109,7 @@
             loginBtn.addEventListener('click', () => {
                 debug.innerHTML += "Button Clicked. Redirecting...<br>";
                 const provider = new GoogleAuthProvider();
-                signInWithRedirect(auth, provider).catch(err => {
+                signInWithPopup(auth, provider).catch(err => {
                     debug.innerHTML += "Auth Error: " + err.message + "<br>";
                 });
             });
