@@ -11,6 +11,7 @@
     <link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
+
     <header>
         <div class="logo gold-text">CLOSER <span style="font-size:0.5em; color:#999;">APP</span></div>
         <div id="logout-btn" class="alpha-btn" style="cursor: pointer;">LOGOUT</div>
@@ -23,6 +24,7 @@
 
         <div class="rank-card">
             <div style="font-size: 0.8rem; color: #888; letter-spacing: 0.1em;">CURRENT RANK</div>
+            
             <div class="rank-number gold-text"><span id="user-rank" style="font-size: 2rem;">---</span></div>
             <div style="font-size: 1.2rem; margin-top: 10px;">SCORE: <span id="user-score" style="font-weight: bold;">---</span> PT</div>
             
@@ -58,64 +60,56 @@
         </div>
         <div style="height: 50px;"></div>
     </div>
-
+    
     <script type="module">
+        // 設定ファイルから必要な道具だけを取り出す
         import { auth, db, doc, getDoc, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 
-        // 1. ログイン監視
+        // ログイン状態を監視する（ページを開いた瞬間に動く）
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // --- ログイン成功時 ---
+                // 1. ログインしている場合 -> データを取得して表示
                 console.log("Login User:", user.uid);
                 
                 try {
+                    // データベースの "users" フォルダから、自分のIDの書類を取ってくる
                     const docRef = doc(db, "users", user.uid);
                     const docSnap = await getDoc(docRef);
-                    
+
                     if (docSnap.exists()) {
                         const data = docSnap.data();
-                        document.getElementById('user-name').innerText = data.name.toUpperCase();
-                        document.getElementById('user-rank').innerText = data.rank || "Standard";
-                        document.getElementById('user-score').innerText = data.score_act || 0;
-
+                        
+                        // 画面の書き換え
+                        document.getElementById('user-name').innerText = data.name.toUpperCase(); // 名前を大文字で
+                        document.getElementById('user-rank').innerText = data.rank || "Standard"; // ランク
+                        document.getElementById('user-score').innerText = data.score_act || 0;    // スコア
+                        
+                        // プログレスバー（スコアに応じて伸びる演出）
                         const score = data.score_act || 0;
                         const percent = Math.min(100, (score / 400) * 100);
                         document.getElementById('progress-bar').style.width = percent + "%";
+                    } else {
+                        console.log("No such document!");
                     }
                 } catch (e) {
-                    console.error("データ取得エラー:", e);
+                    console.error("Error getting document:", e);
                 }
+
             } else {
-                // --- ログアウト状態 ---
-                // ★ここが修正ポイントです★
-                // 勝手に index.html に飛ばすのをやめました。
-                // これにより、ループは物理的に発生しなくなります。
-                
-                document.getElementById('user-name').innerText = "GUEST";
-                document.getElementById('user-rank').innerText = "---";
-                document.getElementById('user-score').innerText = "---";
-                
-                // 画面を暗くして、ログアウト状態であることを視覚的に伝える（任意）
-                document.body.style.opacity = "0.8";
+                // 2. ログインしていない場合 -> 強制的にLPへ戻す
+                // これがないと、URLを知っているだけで誰でも入れてしまいます
+                window.location.href = "index.html";
             }
         });
 
-        // 2. ログアウトボタンの処理
-        const logoutBtn = document.getElementById('logout-btn');
-        logoutBtn.addEventListener('click', async () => {
+        // ログアウトボタン
+        document.getElementById('logout-btn').addEventListener('click', () => {
             if(confirm("ログアウトしますか？")) {
-                try {
-                    // Firebaseからログアウト
-                    await signOut(auth);
-                    
-                    // ログアウト完了後に、手動でトップページへ移動
-                    alert("ログアウトしました。トップページへ戻ります。");
+                signOut(auth).then(() => {
                     window.location.href = "index.html";
-                    
-                } catch (error) {
+                }).catch((error) => {
                     console.error("Logout Error:", error);
-                    alert("ログアウトに失敗しました");
-                }
+                });
             }
         });
     </script>
