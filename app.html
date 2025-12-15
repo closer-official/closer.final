@@ -50,6 +50,14 @@
                 <div style="font-family: 'Cinzel', serif; color: #444;">RECORD</div>
             </div>
 
+            <div class="mission-item" onclick="location.href='timeline.html'">
+                <div>
+                    <div style="font-weight: bold;">他者のトークを評価</div>
+                    <div style="font-size: 0.8rem; color: var(--gold-color);">+10 PT</div>
+                </div>
+                <div style="font-family: 'Cinzel', serif; color: #444;">REVIEW</div>
+            </div>
+
             <div class="mission-item" onclick="alert('開発中の機能です')">
                 <div>
                     <div style="font-weight: bold;">友人を招待する</div>
@@ -62,47 +70,35 @@
     </div>
     
     <script type="module">
-        // 設定ファイルから必要な道具だけを取り出す
         import { auth, db, doc, getDoc, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 
-        // ログイン状態を監視する（ページを開いた瞬間に動く）
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // 1. ログインしている場合 -> データを取得して表示
                 console.log("Login User:", user.uid);
-                
                 try {
-                    // データベースの "users" フォルダから、自分のIDの書類を取ってくる
                     const docRef = doc(db, "users", user.uid);
                     const docSnap = await getDoc(docRef);
 
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         
-                        // 画面の書き換え
-                        document.getElementById('user-name').innerText = data.name.toUpperCase(); // 名前を大文字で
-                        document.getElementById('user-rank').innerText = data.rank || "Standard"; // ランク
-                        document.getElementById('user-score').innerText = data.score_act || 0;    // スコア
+                        document.getElementById('user-name').innerText = data.name.toUpperCase();
+                        document.getElementById('user-rank').innerText = data.rank || "Standard";
+                        document.getElementById('user-score').innerText = data.score_act || 0;
                         
-                        // プログレスバー（スコアに応じて伸びる演出）
                         const score = data.score_act || 0;
                         const percent = Math.min(100, (score / 400) * 100);
                         document.getElementById('progress-bar').style.width = percent + "%";
-                    } else {
-                        console.log("No such document!");
                     }
                 } catch (e) {
                     console.error("Error getting document:", e);
                 }
 
             } else {
-                // 2. ログインしていない場合 -> 強制的にLPへ戻す
-                // これがないと、URLを知っているだけで誰でも入れてしまいます
                 window.location.href = "index.html";
             }
         });
 
-        // ログアウトボタン
         document.getElementById('logout-btn').addEventListener('click', () => {
             if(confirm("ログアウトしますか？")) {
                 signOut(auth).then(() => {

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLOSER | Timeline</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo gold-text">CLOSER <span style="font-size:0.5em; color:#999;">TIMELINE</span></div>
+        <a href="app.html" class="alpha-btn">BACK</a>
+    </header>
+
+    <div class="container" style="padding-top: 100px; padding-bottom: 50px;">
+        <h2 class="section-title gold-text">MARKETPLACE</h2>
+        <p style="margin-bottom: 40px; color: #888; font-size: 0.9rem;">
+            エリートたちが投稿した商談ロジック。<br>
+            本質的な価値があるものに投票してください。
+        </p>
+
+        <div id="posts-container">
+            <p style="color:#666;">LOADING DATA...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, collection, query, orderBy, getDocs, doc, updateDoc, increment } 
+        from "./js/firebase-config.js";
+
+        // 1. ログインチェック
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "index.html";
+            } else {
+                // ログインしていたらデータ読み込み開始
+                loadPosts();
+            }
+        });
+
+        // 2. 投稿データを取得して表示する関数
+        async function loadPosts() {
+            const container = document.getElementById('posts-container');
+            
+            try {
+                // 'posts' コレクションから、作成日(createdAt)の新しい順に取得する命令
+                const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                // ローディング表示を消す
+                container.innerHTML = "";
+
+                if (querySnapshot.empty) {
+                    container.innerHTML = "<p>まだ投稿がありません。</p>";
+                    return;
+                }
+
+                // 取得したデータ1つずつに対してカードを作る
+                querySnapshot.forEach((docSnap) => {
+                    const post = docSnap.data();
+                    const postCard = createPostCard(post, docSnap.id);
+                    container.appendChild(postCard);
+                });
+
+            } catch (error) {
+                console.error("Error:", error);
+                container.innerHTML = "<p style='color:red;'>データの読み込みに失敗しました。</p>";
+            }
+        }
+
+        // 3. HTMLのカードを作成する関数
+        function createPostCard(post, docId) {
+            const div = document.createElement('div');
+            div.className = 'rank-card'; // ダッシュボードのカードデザインを流用
+            div.style.textAlign = 'left';
+            div.style.marginBottom = '30px';
+
+            // 日付の変換（タイムスタンプがない場合の対策含む）
+            let dateStr = "Just now";
+            if (post.createdAt) {
+                dateStr = post.createdAt.toDate().toLocaleDateString('ja-JP');
+            }
+
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="color:#888; font-size:0.8rem;">AUTHOR: <span class="gold-text">${post.authorName || "Unknown"}</span></span>
+                    <span style="color:#666; font-size:0.8rem;">${dateStr}</span>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size:0.7rem; color:#C5A059; letter-spacing:0.1em;">SITUATION</div>
+                    <div style="color:#ddd; font-size:0.9rem;">${escapeHtml(post.situation)}</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size:0.7rem; color:#C5A059; letter-spacing:0.1em;">PROBLEM</div>
+                    <div style="color:#ddd; font-size:0.9rem;">${escapeHtml(post.problem)}</div>
+                </div>
+
+                <div style="background:rgba(0,0,0,0.3); padding:15px; border-left:2px solid #C5A059; margin-bottom:20px;">
+                    <div style="font-size:0.7rem; color:#C5A059; letter-spacing:0.1em; margin-bottom:5px;">SOLUTION</div>
+                    <div style="color:#fff; font-size:1rem; font-family:'Noto Serif JP', serif;">${escapeHtml(post.solution)}</div>
+                </div>
+
+                <div style="text-align:right;">
+                    <button class="vote-btn alpha-btn" data-id="${docId}" style="background:transparent;">
+                        VOTE <span style="font-size:1.2em;">★</span> <span class="like-count">${post.likes || 0}</span>
+                    </button>
+                </div>
+            `;
+
+            // 投票ボタンのイベント設定
+            const btn = div.querySelector('.vote-btn');
+            btn.addEventListener('click', async () => {
+                await votePost(docId, btn);
+            });
+
+            return div;
+        }
+
+        // 4. 投票機能（簡易版）
+        async function votePost(docId, btn) {
+            if (btn.disabled) return;
+            btn.disabled = true; // 連打防止
+
+            try {
+                const postRef = doc(db, "posts", docId);
+                // データベースの数字を +1 する
+                await updateDoc(postRef, {
+                    likes: increment(1)
+                });
+                
+                // 画面の数字も +1 する（リロードしなくていいように）
+                const countSpan = btn.querySelector('.like-count');
+                countSpan.innerText = parseInt(countSpan.innerText) + 1;
+                btn.style.borderColor = "#fff";
+                btn.style.color = "#fff";
+                alert("投票しました！");
+
+            } catch (error) {
+                console.error("Vote Error:", error);
+                alert("投票に失敗しました");
+                btn.disabled = false;
+            }
+        }
+
+        // XSS対策（文字をそのまま表示しない）
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/[&<>"']/g, function(match) {
+                const escape = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return escape[match];
+            });
+        }
+    </script>
+</body>
+</html>
