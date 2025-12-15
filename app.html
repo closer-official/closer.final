@@ -67,8 +67,7 @@
             if (user) {
                 // --- ログイン成功時 ---
                 console.log("Login User:", user.uid);
-                document.getElementById('user-name').innerText = "CONNECTING..."; // とりあえず表示
-
+                
                 try {
                     const docRef = doc(db, "users", user.uid);
                     const docSnap = await getDoc(docRef);
@@ -82,36 +81,41 @@
                         const score = data.score_act || 0;
                         const percent = Math.min(100, (score / 400) * 100);
                         document.getElementById('progress-bar').style.width = percent + "%";
-                    } else {
-                        console.error("ユーザーデータが見つかりません (No Document)");
-                        document.getElementById('user-name').innerText = "NO DATA";
                     }
                 } catch (e) {
                     console.error("データ取得エラー:", e);
-                    document.getElementById('user-name').innerText = "ERROR";
                 }
             } else {
-                // --- ログアウト状態（ここがループの原因候補） ---
-                console.log("ユーザーはログインしていません。");
+                // --- ログアウト状態 ---
+                // ★ここが修正ポイントです★
+                // 勝手に index.html に飛ばすのをやめました。
+                // これにより、ループは物理的に発生しなくなります。
                 
-                // ★【重要】ループを止めるため、リダイレクトを一時的に無効化しました
-                // window.location.href = "index.html"; 
+                document.getElementById('user-name').innerText = "GUEST";
+                document.getElementById('user-rank').innerText = "---";
+                document.getElementById('user-score').innerText = "---";
                 
-                // 代わりに画面に警告を出します
-                document.getElementById('user-name').innerText = "NOT LOGGED IN";
-                document.body.style.backgroundColor = "#300"; // 画面を少し赤くして警告
-                alert("現在はログアウト状態です。\nループを防ぐため、トップページへの自動移動を停止しました。");
+                // 画面を暗くして、ログアウト状態であることを視覚的に伝える（任意）
+                document.body.style.opacity = "0.8";
             }
         });
 
-        // 2. ログアウト処理
+        // 2. ログアウトボタンの処理
         const logoutBtn = document.getElementById('logout-btn');
         logoutBtn.addEventListener('click', async () => {
             if(confirm("ログアウトしますか？")) {
-                await signOut(auth);
-                alert("ログアウトしました。");
-                // 手動で移動
-                window.location.href = "index.html";
+                try {
+                    // Firebaseからログアウト
+                    await signOut(auth);
+                    
+                    // ログアウト完了後に、手動でトップページへ移動
+                    alert("ログアウトしました。トップページへ戻ります。");
+                    window.location.href = "index.html";
+                    
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    alert("ログアウトに失敗しました");
+                }
             }
         });
     </script>
