@@ -105,58 +105,54 @@
     <script src="js/main.js"></script>
 
     <script type="module">
-        // さっき作った設定ファイルを読み込む
+        // 1. 設定ファイルを読み込む（ここが間違っていたので直しました）
         import { auth, createUserWithEmailAndPassword, updateProfile, db, doc, setDoc, serverTimestamp } from "./js/firebase-config.js";
 
-        // HTMLの要素を取得
-        const registerForm = document.querySelector('form'); // フォーム
-        const nameInput = document.getElementById('reg-name'); // 名前欄
-        const emailInput = document.querySelector('input[type="email"]'); // メール欄
-        const passInput = document.querySelector('input[type="password"]'); // パスワード欄
-        const submitBtn = document.querySelector('button[type="submit"]'); // 登録ボタン
+        // 2. フォームなどの部品を取得
+        const registerForm = document.getElementById('register-form');
+        const submitBtn = document.querySelector('button[type="submit"]');
 
-        // 登録ボタンが押されたときの処理
+        // 3. フォームがあるか確認して処理を開始
         if(registerForm) {
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault(); // 画面リロードを防ぐ
                 
-                const name = nameInput.value;
-                const email = emailInput.value;
-                const pass = passInput.value;
+                // ★確認用：ボタンが押されたらアラートを出す
+                alert("登録ボタンが押されました！\nこれが出ればプログラムは正常です。");
+
+                const name = document.getElementById('reg-name').value;
+                const email = document.querySelector('input[type="email"]').value;
+                const pass = document.querySelector('input[type="password"]').value;
 
                 try {
-                    // ボタンを「処理中...」に変える
-                    const originalText = submitBtn.innerText;
-                    submitBtn.innerText = "CONNECTING...";
+                    submitBtn.innerText = "通信中...";
                     submitBtn.disabled = true;
 
-                    // 1. Firebaseでユーザーを作成（認証）
+                    // Firebaseでユーザーを作る
                     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                     const user = userCredential.user;
-
-                    // 2. プロフィール（名前）を更新
+                    
+                    // プロフィール更新
                     await updateProfile(user, { displayName: name });
 
-                    // 3. データベースに初期データを保存（要件定義書 1.2 参照）
+                    // データベースに保存
                     await setDoc(doc(db, "users", user.uid), {
                         uid: user.uid,
                         name: name,
                         email: email,
-                        rank: "Standard",      // 初期ランク
-                        role: "Observer",      // 初期役割
-                        score_act: 0,          // 実力スコア
-                        score_auditor: 0,      // 審査スコア
+                        rank: "Standard",
+                        role: "Observer",
+                        score_act: 0,
                         created_at: serverTimestamp()
                     });
 
-                    alert("WELCOME, " + name.toUpperCase() + ".\n入場を許可します。");
-                    
-                    // 4. アプリ画面へ移動
+                    alert("登録成功！アプリへ移動します。");
                     window.location.href = "app.html";
 
                 } catch (error) {
+                    // エラーがあれば表示
+                    alert("エラーが発生しました:\n" + error.message);
                     console.error(error);
-                    alert("ERROR: " + error.message);
                     submitBtn.innerText = "ウェイティングリストに登録";
                     submitBtn.disabled = false;
                 }
