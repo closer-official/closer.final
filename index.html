@@ -27,19 +27,71 @@
 <body>
     <div id="debug-console"></div>
 
-    <script>
-        // エラーが起きたら画面に表示する「見張り番」
-        window.onerror = function(message, source, lineno, colno, error) {
-            const consoleBox = document.getElementById('debug-console');
-            consoleBox.style.display = 'block';
-            consoleBox.innerHTML += `ERROR: ${message} <br>at line ${lineno}<br><br>`;
-        };
-        // Promiseのエラーもキャッチ
-        window.addEventListener("unhandledrejection", function(event) {
-            const consoleBox = document.getElementById('debug-console');
-            consoleBox.style.display = 'block';
-            consoleBox.innerHTML += `PROMISE ERROR: ${event.reason}<br><br>`;
+    <script type="module">
+        // ★ここを書き換えました (signInWithRedirect -> signInWithPopup)
+        import { auth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, db, doc, getDoc, setDoc, serverTimestamp } 
+        from "./js/firebase-config.js";
+
+        const loginBtn = document.getElementById('google-login-btn');
+        const loadingMsg = document.getElementById('loading-msg');
+        const debug = document.getElementById('debug-console');
+
+        // 読み込み確認ログ
+        if(debug) {
+            debug.style.display = 'block';
+            debug.innerHTML += "System Loading (Popup Mode)...<br>";
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if(debug) debug.innerHTML += "User found: " + user.email + "<br>";
+                if(loginBtn) loginBtn.style.display = 'none';
+                if(loadingMsg) loadingMsg.style.display = 'block';
+                
+                try {
+                    await handleUserDatabase(user);
+                    // ログイン成功したら移動
+                    window.location.href = "timeline.html";
+                } catch (e) {
+                    if(debug) debug.innerHTML += "DB Error: " + e.message + "<br>";
+                }
+            }
         });
+
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => {
+                if(debug) debug.innerHTML += "Button Clicked. Opening Popup...<br>";
+                const provider = new GoogleAuthProvider();
+                
+                // ★ここを書き換えました！
+                // ポップアップでログイン（画面遷移しないのでループしない）
+                signInWithPopup(auth, provider)
+                    .then((result) => {
+                        if(debug) debug.innerHTML += "Popup Success!<br>";
+                        // 成功すると自動的に上の onAuthStateChanged が動きます
+                    })
+                    .catch((error) => {
+                        if(debug) debug.innerHTML += "Auth Error: " + error.message + "<br>";
+                        alert("ログインエラー: " + error.message);
+                    });
+            });
+        }
+
+        async function handleUserDatabase(user) {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) {
+                await setDoc(userRef, {
+                    uid: user.uid,
+                    name: user.displayName,
+                    email: user.email,
+                    rank: "Standard",
+                    role: "Observer",
+                    score_act: 0,
+                    created_at: serverTimestamp()
+                });
+            }
+        }
     </script>
 
     <header>
