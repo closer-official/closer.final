@@ -6,14 +6,24 @@
     <title>CLOSER | Timeline</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="icon.png">
 </head>
 <body>
     <header>
-        <div class="logo gold-text">CLOSER <span style="font-size:0.5em; color:#999;">TIMELINE</span></div>
-        <a href="app.html" class="alpha-btn">BACK</a>
+        <div class="logo gold-text" onclick="location.reload()" style="cursor:pointer;">CLOSER <span style="font-size:0.5em; color:#999;">TIMELINE</span></div>
+        
+        <div style="display:flex; gap:10px; align-items:center;">
+            <a href="post.html" class="alpha-btn" style="background:var(--gold-color); color:#000; font-weight:bold;">RECORD</a>
+            <div id="logout-btn" class="alpha-btn" style="border:1px solid #444; color:#666; font-size:0.7rem;">LOGOUT</div>
+        </div>
     </header>
 
     <div class="container" style="padding-top: 100px; padding-bottom: 50px;">
+        <div style="text-align:left; margin-bottom:30px; border-bottom:1px solid #333; padding-bottom:10px;">
+            <span style="color:#888; font-size:0.8rem;">LOGIN AS: </span>
+            <span id="current-user-name" class="gold-text">LOADING...</span>
+        </div>
+
         <h2 class="section-title gold-text">MARKETPLACE</h2>
         <p style="margin-bottom: 40px; color: #888; font-size: 0.9rem;">
             エリートたちが投稿した商談ロジック。<br>
@@ -26,61 +36,65 @@
     </div>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, collection, query, orderBy, getDocs, doc, updateDoc, increment } 
+        import { auth, db, onAuthStateChanged, collection, query, orderBy, getDocs, doc, updateDoc, increment, getDoc, signOut } 
         from "./js/firebase-config.js";
 
-        // 1. ログインチェック
-        onAuthStateChanged(auth, (user) => {
+        // 1. ログインチェック & データ読み込み
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "index.html";
             } else {
-                // ログインしていたらデータ読み込み開始
+                // ユーザー名を表示（おまけ機能）
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if(userDoc.exists()) {
+                        document.getElementById('current-user-name').innerText = userDoc.data().name.toUpperCase();
+                    }
+                } catch(e) { console.error(e); }
+
+                // タイムライン読み込み
                 loadPosts();
             }
         });
 
-        // 2. 投稿データを取得して表示する関数
+        // 2. ログアウト処理
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if(confirm('ログアウトしますか？')) {
+                signOut(auth).then(() => window.location.href = "index.html");
+            }
+        });
+
+        // 3. 投稿データ取得
         async function loadPosts() {
             const container = document.getElementById('posts-container');
-            
             try {
-                // 'posts' コレクションから、作成日(createdAt)の新しい順に取得する命令
                 const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
                 const querySnapshot = await getDocs(q);
 
-                // ローディング表示を消す
                 container.innerHTML = "";
-
                 if (querySnapshot.empty) {
                     container.innerHTML = "<p>まだ投稿がありません。</p>";
                     return;
                 }
-
-                // 取得したデータ1つずつに対してカードを作る
                 querySnapshot.forEach((docSnap) => {
                     const post = docSnap.data();
-                    const postCard = createPostCard(post, docSnap.id);
-                    container.appendChild(postCard);
+                    container.appendChild(createPostCard(post, docSnap.id));
                 });
-
             } catch (error) {
                 console.error("Error:", error);
-                container.innerHTML = "<p style='color:red;'>データの読み込みに失敗しました。</p>";
+                container.innerHTML = "<p style='color:red;'>読み込みエラー</p>";
             }
         }
 
-        // 3. HTMLのカードを作成する関数
+        // 4. カード生成
         function createPostCard(post, docId) {
             const div = document.createElement('div');
-            div.className = 'rank-card'; // ダッシュボードのカードデザインを流用
+            div.className = 'rank-card'; 
             div.style.textAlign = 'left';
             div.style.marginBottom = '30px';
 
-            // 日付の変換（タイムスタンプがない場合の対策含む）
             let dateStr = "Just now";
-            if (post.createdAt) {
-                dateStr = post.createdAt.toDate().toLocaleDateString('ja-JP');
-            }
+            if (post.createdAt) dateStr = post.createdAt.toDate().toLocaleDateString('ja-JP');
 
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -110,52 +124,31 @@
                 </div>
             `;
 
-            // 投票ボタンのイベント設定
             const btn = div.querySelector('.vote-btn');
-            btn.addEventListener('click', async () => {
-                await votePost(docId, btn);
-            });
-
+            btn.addEventListener('click', async () => await votePost(docId, btn));
             return div;
         }
 
-        // 4. 投票機能（簡易版）
         async function votePost(docId, btn) {
             if (btn.disabled) return;
-            btn.disabled = true; // 連打防止
-
+            btn.disabled = true;
             try {
                 const postRef = doc(db, "posts", docId);
-                // データベースの数字を +1 する
-                await updateDoc(postRef, {
-                    likes: increment(1)
-                });
-                
-                // 画面の数字も +1 する（リロードしなくていいように）
+                await updateDoc(postRef, { likes: increment(1) });
                 const countSpan = btn.querySelector('.like-count');
                 countSpan.innerText = parseInt(countSpan.innerText) + 1;
                 btn.style.borderColor = "#fff";
                 btn.style.color = "#fff";
-                alert("投票しました！");
-
             } catch (error) {
                 console.error("Vote Error:", error);
-                alert("投票に失敗しました");
                 btn.disabled = false;
             }
         }
 
-        // XSS対策（文字をそのまま表示しない）
         function escapeHtml(str) {
             if (!str) return "";
             return str.replace(/[&<>"']/g, function(match) {
-                const escape = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#39;'
-                };
+                const escape = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
                 return escape[match];
             });
         }
