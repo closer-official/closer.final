@@ -72,9 +72,7 @@ header {
 
 /* オープニング画面 */
 #opening {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-    background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center;
-    transition: opacity 1s;
+    display: none;  /* これでオープニング画面を強制的に非表示にします */
 }
 #opening-logo { font-family: 'Cinzel', serif; font-size: 3rem; opacity: 0; transition: opacity 1s; letter-spacing: 0.2em; }
 
