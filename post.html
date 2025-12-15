@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLOSER | New Post</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo gold-text">CLOSER <span style="font-size:0.5em; color:#999;">EDITOR</span></div>
+        <a href="app.html" class="alpha-btn">BACK</a>
+    </header>
+
+    <div class="container fade-in" style="padding-top: 100px; padding-bottom: 50px;">
+        <h2 class="section-title gold-text">STRUCTURAL WRITING</h2>
+        <p style="margin-bottom: 40px; color: #888; font-size: 0.9rem;">
+            「商談ロジック」を構造化して記録します。<br>
+            抽象的な精神論は排除し、再現性のあるスクリプトを記述してください。
+        </p>
+
+        <form id="post-form">
+            <div class="input-group" style="max-width: 100%;">
+                <label>SITUATION (場面・相手)</label>
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">例：従業員50名の中小企業社長、コスト削減提案の初回商談</p>
+                <input type="text" id="p-situation" class="input-field" placeholder="誰に対する、どんな商談か？" required>
+            </div>
+
+            <div class="input-group" style="max-width: 100%; margin-top: 20px;">
+                <label>PROBLEM (課題・痛み)</label>
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">例：既存システムの維持費が高く、新規投資に回せていない</p>
+                <textarea id="p-problem" class="input-field" rows="3" placeholder="顧客が抱える潜在的な痛みは？" required></textarea>
+            </div>
+
+            <div class="input-group" style="max-width: 100%; margin-top: 20px;">
+                <label class="gold-text">SOLUTION (トークスクリプト)</label>
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">※「」を用いた具体的な会話形式で記述</p>
+                <textarea id="p-solution" class="input-field" rows="6" placeholder="「社長、実はそのコストですが...」" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-full btn-fill" style="margin-top: 40px;">ロジックを保存する</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { auth, db, doc, setDoc, serverTimestamp, onAuthStateChanged, getDoc } 
+        from "./js/firebase-config.js";
+
+        // 1. ログインチェック（門番）
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "index.html"; // ログインしてなければ追放
+            }
+        });
+
+        // 2. 投稿処理
+        const form = document.getElementById('post-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.querySelector('button');
+            const user = auth.currentUser;
+
+            if(!user) return;
+
+            // 入力値を取得
+            const situation = document.getElementById('p-situation').value;
+            const problem = document.getElementById('p-problem').value;
+            const solution = document.getElementById('p-solution').value;
+
+            try {
+                btn.innerText = "SAVING...";
+                btn.disabled = true;
+
+                // 投稿IDを現在時刻から作る（ユニークにするため）
+                const postId = "post_" + Date.now();
+
+                // ★ここが重要：posts という新しい箱（コレクション）を作って保存します
+                await setDoc(doc(db, "posts", postId), {
+                    postId: postId,
+                    authorId: user.uid,            // 誰が書いたか
+                    authorName: user.displayName,  // 書いた人の名前
+                    situation: situation,
+                    problem: problem,
+                    solution: solution,
+                    likes: 0,                      // いいね数（初期値0）
+                    createdAt: serverTimestamp()   // 投稿日時
+                });
+
+                // 自分のスコアを加算する（投稿ボーナス +10pt）
+                // ※本来はもっと複雑ですが、まずは簡易的に実装
+                /* ここでのスコア加算は「トランザクション処理」が必要になるため、
+                   まずは「投稿データの保存」までをゴールにします。
+                */
+
+                alert("ロジックの保存が完了しました。");
+                window.location.href = "app.html"; // ダッシュボードに戻る
+
+            } catch (error) {
+                console.error("Error:", error);
+                alert("保存に失敗しました: " + error.message);
+                btn.innerText = "ロジックを保存する";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
