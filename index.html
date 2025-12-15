@@ -103,5 +103,65 @@
     </div>
 
     <script src="js/main.js"></script>
+
+    <script type="module">
+        // さっき作った設定ファイルを読み込む
+        import { auth, createUserWithEmailAndPassword, updateProfile, db, doc, setDoc, serverTimestamp } from "./js/firebase-config.js";
+
+        // HTMLの要素を取得
+        const registerForm = document.querySelector('form'); // フォーム
+        const nameInput = document.getElementById('reg-name'); // 名前欄
+        const emailInput = document.querySelector('input[type="email"]'); // メール欄
+        const passInput = document.querySelector('input[type="password"]'); // パスワード欄
+        const submitBtn = document.querySelector('button[type="submit"]'); // 登録ボタン
+
+        // 登録ボタンが押されたときの処理
+        if(registerForm) {
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // 画面リロードを防ぐ
+                
+                const name = nameInput.value;
+                const email = emailInput.value;
+                const pass = passInput.value;
+
+                try {
+                    // ボタンを「処理中...」に変える
+                    const originalText = submitBtn.innerText;
+                    submitBtn.innerText = "CONNECTING...";
+                    submitBtn.disabled = true;
+
+                    // 1. Firebaseでユーザーを作成（認証）
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                    const user = userCredential.user;
+
+                    // 2. プロフィール（名前）を更新
+                    await updateProfile(user, { displayName: name });
+
+                    // 3. データベースに初期データを保存（要件定義書 1.2 参照）
+                    await setDoc(doc(db, "users", user.uid), {
+                        uid: user.uid,
+                        name: name,
+                        email: email,
+                        rank: "Standard",      // 初期ランク
+                        role: "Observer",      // 初期役割
+                        score_act: 0,          // 実力スコア
+                        score_auditor: 0,      // 審査スコア
+                        created_at: serverTimestamp()
+                    });
+
+                    alert("WELCOME, " + name.toUpperCase() + ".\n入場を許可します。");
+                    
+                    // 4. アプリ画面へ移動
+                    window.location.href = "app.html";
+
+                } catch (error) {
+                    console.error(error);
+                    alert("ERROR: " + error.message);
+                    submitBtn.innerText = "ウェイティングリストに登録";
+                    submitBtn.disabled = false;
+                }
+            });
+        }
+    </script>
 </body>
 </html>
