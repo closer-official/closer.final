@@ -11,27 +11,26 @@
     <link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
-
     <header>
         <div class="logo gold-text">CLOSER <span style="font-size:0.5em; color:#999;">APP</span></div>
-        <a href="index.html" class="alpha-btn">LOGOUT</a>
+        <div id="logout-btn" class="alpha-btn" style="cursor: pointer;">LOGOUT</div>
     </header>
 
     <div id="app-view" class="container" style="padding-top: 100px;">
         <div style="text-align: left; margin-bottom: 20px; font-size: 0.9rem;">
-            WELCOME, <span class="gold-text">GUEST</span>
+            WELCOME, <span id="user-name" class="gold-text">LOADING...</span>
         </div>
 
         <div class="rank-card">
             <div style="font-size: 0.8rem; color: #888; letter-spacing: 0.1em;">CURRENT RANK</div>
-            <div class="rank-number gold-text">#<span id="rank-val">1,245</span></div>
-            <div style="font-size: 1.2rem; margin-top: 10px;">SCORE: <span id="score-val" style="font-weight: bold;">100</span> PT</div>
+            <div class="rank-number gold-text"><span id="user-rank" style="font-size: 2rem;">---</span></div>
+            <div style="font-size: 1.2rem; margin-top: 10px;">SCORE: <span id="user-score" style="font-weight: bold;">---</span> PT</div>
             
             <div style="margin-top: 20px; background: #222; height: 6px; width: 100%; border-radius: 3px;">
-                <div id="progress-bar" style="height: 100%; background: var(--gold-gradient); width: 10%; transition: width 1s;"></div>
+                <div id="progress-bar" style="height: 100%; background: var(--gold-gradient); width: 0%; transition: width 1s;"></div>
             </div>
             <div style="font-size: 0.8rem; color: #ccc; margin-top: 8px; text-align: right;">
-                入場圏内まであと <span class="gold-text">400 PT</span>
+                NEXT RANK: <span class="gold-text">400 PT</span>
             </div>
         </div>
 
@@ -41,60 +40,44 @@
         </p>
 
         <div>
-            <div class="mission-item" onclick="alert('X連携画面へ（デモ）')">
+            <div class="mission-item" onclick="alert('開発中の機能です')">
                 <div>
-                    <div style="font-weight: bold;">X (Twitter) 連携</div>
+                    <div style="font-weight: bold;">トークを録音する</div>
                     <div style="font-size: 0.8rem; color: var(--gold-color);">+50 PT</div>
                 </div>
-                <div style="font-family: 'Cinzel', serif; color: #444;">CONNECT</div>
+                <div style="font-family: 'Cinzel', serif; color: #444;">RECORD</div>
             </div>
 
-            <div class="mission-item" onclick="alert('招待リンクをコピーしました')">
+            <div class="mission-item" onclick="alert('開発中の機能です')">
                 <div>
                     <div style="font-weight: bold;">友人を招待する</div>
                     <div style="font-size: 0.8rem; color: var(--gold-color);">+30 PT / 人</div>
                 </div>
                 <div style="font-family: 'Cinzel', serif; color: #444;">SHARE</div>
             </div>
-
-            <div style="margin-top: 40px; border: 1px solid var(--gold-color); background: rgba(197, 160, 89, 0.05); padding: 20px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 1.1rem;" class="gold-text">FAST PASS</h3>
-                <p style="font-size: 0.85rem; color: #ccc; text-align: left; margin-bottom: 15px;">
-                    リリース前のメンバーシップ予約を行うことで、<br>
-                    入場が確約され、スタートダッシュが可能になります。
-                </p>
-                <div class="mission-item" style="border-color: var(--gold-color); margin-bottom:0;" onclick="alert('Stripe決済へ遷移します（デモ）')">
-                    <div>
-                        <div style="font-weight: bold;">Standard メンバー予約</div>
-                        <div style="font-size: 0.8rem; color: #fff;">月額 ¥500 → <strong>+1,000 PT</strong></div>
-                    </div>
-                    <div style="font-family: 'Cinzel', serif; font-weight: bold;">PAY</div>
-                </div>
-            </div>
         </div>
         <div style="height: 50px;"></div>
     </div>
-    
+
     <script type="module">
         import { auth, db, doc, getDoc, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 
-        // 1. ログイン状態の監視（ここが「門番」の役割をします）
+        // 1. ログイン監視（門番）
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // --- ログインしている時 ---
+                // --- ログイン中 ---
                 console.log("Login User:", user.uid);
-                
                 try {
                     const docRef = doc(db, "users", user.uid);
                     const docSnap = await getDoc(docRef);
-
+                    
                     if (docSnap.exists()) {
                         const data = docSnap.data();
-                        
                         document.getElementById('user-name').innerText = data.name.toUpperCase();
                         document.getElementById('user-rank').innerText = data.rank || "Standard";
                         document.getElementById('user-score').innerText = data.score_act || 0;
-                        
+
+                        // プログレスバー演出
                         const score = data.score_act || 0;
                         const percent = Math.min(100, (score / 400) * 100);
                         document.getElementById('progress-bar').style.width = percent + "%";
@@ -102,27 +85,38 @@
                 } catch (e) {
                     console.error("Error:", e);
                 }
-
             } else {
-                // --- ログアウトした（またはログインしていない）時 ---
-                // ★ここで自動的に index.html に戻されます
+                // --- ログアウト状態 ---
+                // 強制的にトップページへ戻す
                 window.location.href = "index.html";
             }
         });
 
-        // 2. ログアウトボタンの処理
-        document.getElementById('logout-btn').addEventListener('click', () => {
+        // 2. ログアウト処理（修正版）
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        logoutBtn.addEventListener('click', async () => {
             if(confirm("ログアウトしますか？")) {
-                // ★修正点：ここでは「サインアウトする」ことだけに集中します。
-                // 画面遷移（window.location...）は上の「門番」がやってくれるので削除しました。
-                signOut(auth).catch((error) => {
+                // ボタンを連打できないようにし、見た目を変える
+                logoutBtn.innerText = "PROCESSING...";
+                logoutBtn.style.opacity = "0.5";
+                logoutBtn.style.pointerEvents = "none";
+
+                try {
+                    // Firebaseにログアウト命令を送る（完了を待つ）
+                    await signOut(auth);
+                    // ※ここで何もしなくても、上の onAuthStateChanged が
+                    // ログアウトを検知して自動で index.html に飛ばしてくれます
+                } catch (error) {
                     console.error("Logout Error:", error);
                     alert("ログアウトに失敗しました");
-                });
+                    // エラーならボタンを元に戻す
+                    logoutBtn.innerText = "LOGOUT";
+                    logoutBtn.style.opacity = "1";
+                    logoutBtn.style.pointerEvents = "auto";
+                }
             }
         });
     </script>
-</body>
-</html>
 </body>
 </html>
