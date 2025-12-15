@@ -6,6 +6,56 @@
     <title>CLOSER | Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            background: #111;
+            border: 1px solid #333;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 5px;
+            font-family: 'Cinzel', serif;
+        }
+        .stat-value {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            font-family: 'Cinzel', serif;
+        }
+        .menu-list {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+            color: #ddd;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .menu-item:hover { color: var(--gold-color); }
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            font-size: 0.7rem;
+        }
+        .footer-links a { color: #666; text-decoration: none; }
+    </style>
 </head>
 <body>
     <header>
@@ -13,27 +63,77 @@
         <a href="timeline.html" class="alpha-btn">BACK</a>
     </header>
 
-    <div class="container" style="padding-top: 100px; text-align: center;">
+    <div class="container" style="padding-top: 80px; text-align: center;">
         
-        <div style="position: relative; width: 120px; height: 120px; margin: 0 auto 20px;">
-            <img id="profile-img" src="" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; border: 2px solid #C5A059; object-fit: cover;">
-            
-            <label for="file-input" style="position: absolute; bottom: 0; right: 0; background: #C5A059; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
-                <span style="font-size: 1.2rem; color: #000;">📷</span>
+        <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 15px;">
+            <img id="profile-img" src="" style="width: 100%; height: 100%; border-radius: 50%; border: 2px solid #C5A059; object-fit: cover;">
+            <label for="file-input" style="position: absolute; bottom: 0; right: 0; background: #C5A059; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 1rem; color: #000;">📷</span>
             </label>
             <input type="file" id="file-input" accept="image/*" style="display: none;">
         </div>
 
-        <button id="upload-btn" class="alpha-btn" style="display:none; margin: 0 auto 20px; background:var(--gold-color); color:#000; font-weight:bold;">
-            変更を保存する
-        </button>
+        <button id="upload-btn" class="alpha-btn" style="display:none; margin: 0 auto 15px; font-size:0.7rem;">画像保存</button>
         
-        <h2 id="profile-name" class="gold-text" style="margin-bottom: 10px; font-family:'Cinzel', serif;">LOADING...</h2>
-        <p id="profile-email" style="color: #666; margin-bottom: 40px; font-size:0.9rem;">...</p>
+        <h2 id="profile-name" class="gold-text" style="margin-bottom: 5px;">LOADING...</h2>
+        <p id="profile-bio" style="color: #888; font-size: 0.8rem; margin-bottom: 20px; padding: 0 20px;">
+            ...
+        </p>
 
-        <div style="border-top:1px solid #333; margin: 30px 0;"></div>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">RANK</div>
+                <div id="stat-rank" class="stat-value gold-text">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">SKILL SCORE</div>
+                <div id="stat-score" class="stat-value">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">AMV</div>
+                <div id="stat-amv" class="stat-value">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">CC (COIN)</div>
+                <div id="stat-cc" class="stat-value">-</div>
+            </div>
+        </div>
 
-        <button id="logout-btn" class="btn btn-full" style="max-width: 300px; margin: 0 auto; border-color: #ff4444; color: #ff4444; font-size:0.8rem;">
+        <div style="background: #1a1a1a; padding: 15px; border: 1px solid #444; margin-bottom: 30px; border-radius: 5px;">
+            <div class="stat-label">REWARD BALANCE (JAY)</div>
+            <div id="stat-reward" class="stat-value" style="font-size: 1.5rem;">¥0</div>
+        </div>
+
+        <div class="menu-list">
+            <div class="menu-item" onclick="alert('自己紹介編集機能は準備中です')">
+                <span>自己紹介文の編集</span> <span>&gt;</span>
+            </div>
+            <div class="menu-item" onclick="alert('保存済み投稿はありません')">
+                <span>保存済み投稿 (SAVED)</span> <span>&gt;</span>
+            </div>
+            <div class="menu-item" onclick="alert('現在すべての投稿は公開設定です')">
+                <span>セキュリティ (鍵アカウント設定)</span> <span>OFF</span>
+            </div>
+            <div class="menu-item" onclick="alert('スカウト機能リリース後に設定可能です')">
+                <span>スカウト設定</span> <span>&gt;</span>
+            </div>
+            <div class="menu-item">
+                <span>通知設定</span> <span>ON</span>
+            </div>
+            <div class="menu-item" onclick="alert('現在加入中のサブスクリプションはありません')">
+                <span>サブスクリプション管理</span> <span>&gt;</span>
+            </div>
+        </div>
+
+        <div class="footer-links">
+            <a href="javascript:void(0)">利用規約</a>
+            <a href="javascript:void(0)">プライバシーポリシー</a>
+            <a href="javascript:void(0)">特定商取引法に基づく表記</a>
+            <a href="javascript:void(0)">よくある質問</a>
+            <a href="javascript:void(0)">返金窓口</a>
+        </div>
+
+        <button id="logout-btn" class="btn btn-full" style="border-color: #ff4444; color: #ff4444; margin-bottom: 50px;">
             LOGOUT
         </button>
 
@@ -43,84 +143,79 @@
         import { 
             auth, onAuthStateChanged, signOut, updateProfile, 
             storage, ref, uploadBytes, getDownloadURL,
-            db, doc, updateDoc 
+            db, doc, getDoc, updateDoc 
         } from "./js/firebase-config.js";
 
-        const img = document.getElementById('profile-img');
-        const name = document.getElementById('profile-name');
-        const email = document.getElementById('profile-email');
-        const fileInput = document.getElementById('file-input');
-        const uploadBtn = document.getElementById('upload-btn');
+        const els = {
+            img: document.getElementById('profile-img'),
+            name: document.getElementById('profile-name'),
+            bio: document.getElementById('profile-bio'),
+            rank: document.getElementById('stat-rank'),
+            score: document.getElementById('stat-score'),
+            amv: document.getElementById('stat-amv'),
+            cc: document.getElementById('stat-cc'),
+            reward: document.getElementById('stat-reward'),
+            fileInput: document.getElementById('file-input'),
+            uploadBtn: document.getElementById('upload-btn')
+        };
         
         let currentUser = null;
         let selectedFile = null;
 
-        // 1. ユーザー情報読み込み
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                // 画像がなければプレースホルダー
-                img.src = user.photoURL || "https://via.placeholder.com/150/000000/FFFFFF/?text=NO+IMG";
-                name.innerText = user.displayName || "NO NAME";
-                email.innerText = user.email;
+                els.img.src = user.photoURL || "https://via.placeholder.com/100?text=NO+IMG";
+                els.name.innerText = user.displayName;
+
+                // Firestoreから詳細データを取得
+                try {
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        els.bio.innerText = data.bio || "自己紹介文はまだ設定されていません。";
+                        els.rank.innerText = (data.rank || "Standard").toUpperCase();
+                        els.score.innerText = data.score_skill || 0;
+                        els.amv.innerText = data.amv || 0;
+                        els.cc.innerText = data.cc || 0;
+                        els.reward.innerText = "¥" + (data.reward_bal || 0).toLocaleString();
+                    }
+                } catch (e) {
+                    console.error("Data Load Error:", e);
+                }
             } else {
                 window.location.href = "index.html";
             }
         });
 
-        // 2. ファイル選択時のプレビュー処理
-        fileInput.addEventListener('change', (e) => {
+        // 画像アップロード処理
+        els.fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                // サイズチェック (2MB以下)
-                if(file.size > 2 * 1024 * 1024) {
-                    alert("画像サイズは2MB以下にしてください");
-                    return;
-                }
                 selectedFile = file;
-                img.src = URL.createObjectURL(file); // プレビュー
-                uploadBtn.style.display = 'block';   // ボタン表示
+                els.img.src = URL.createObjectURL(file);
+                els.uploadBtn.style.display = 'block';
             }
         });
 
-        // 3. アップロード実行
-        uploadBtn.addEventListener('click', async () => {
+        els.uploadBtn.addEventListener('click', async () => {
             if (!selectedFile || !currentUser) return;
-
-            uploadBtn.innerText = "UPLOADING...";
-            uploadBtn.disabled = true;
-
+            els.uploadBtn.innerText = "...";
             try {
-                // Storageの保存場所: users/{uid}/profile.jpg
-                // 拡張子に関わらず profile.jpg として上書き保存することで容量節約
                 const storageRef = ref(storage, `users/${currentUser.uid}/profile.jpg`);
-                
                 await uploadBytes(storageRef, selectedFile);
                 const photoURL = await getDownloadURL(storageRef);
-
-                // Auth情報更新
-                await updateProfile(currentUser, { photoURL: photoURL });
-
-                // Firestore情報更新 (重要: タイムラインのアイコン用)
-                const userRef = doc(db, "users", currentUser.uid);
-                await updateDoc(userRef, { photoURL: photoURL });
-
-                alert("プロフィール画像を更新しました");
-                location.reload(); // 再読み込みして反映
-
-            } catch (error) {
-                console.error(error);
-                alert("エラーが発生しました: " + error.message);
-                uploadBtn.innerText = "変更を保存する";
-                uploadBtn.disabled = false;
+                await updateProfile(currentUser, { photoURL });
+                await updateDoc(doc(db, "users", currentUser.uid), { photoURL });
+                alert("更新しました");
+                location.reload();
+            } catch (e) {
+                alert("エラー: " + e.message);
             }
         });
 
-        // 4. ログアウト
         document.getElementById('logout-btn').addEventListener('click', () => {
-            if(confirm('ログアウトしますか？')) {
-                signOut(auth).then(() => window.location.href = "index.html");
-            }
+            if(confirm('ログアウトしますか？')) signOut(auth).then(() => window.location.href = "index.html");
         });
     </script>
 </body>
