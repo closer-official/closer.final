@@ -73,29 +73,23 @@
                 btn.innerText = "SAVING...";
                 btn.disabled = true;
 
-                // 投稿IDを現在時刻から作る（ユニークにするため）
+                // 投稿IDを現在時刻から作る
                 const postId = "post_" + Date.now();
 
-                // ★ここが重要：posts という新しい箱（コレクション）を作って保存します
                 await setDoc(doc(db, "posts", postId), {
                     postId: postId,
-                    authorId: user.uid,            // 誰が書いたか
-                    authorName: user.displayName,  // 書いた人の名前
+                    authorId: user.uid,
+                    authorName: user.displayName,
                     situation: situation,
                     problem: problem,
                     solution: solution,
-                    likes: 0,                      // いいね数（初期値0）
-                    createdAt: serverTimestamp()   // 投稿日時
+                    likes: 0,
+                    createdAt: serverTimestamp()
                 });
 
-                // 自分のスコアを加算する（投稿ボーナス +10pt）
-                // ※本来はもっと複雑ですが、まずは簡易的に実装
-                /* ここでのスコア加算は「トランザクション処理」が必要になるため、
-                   まずは「投稿データの保存」までをゴールにします。
-                */
-
                 alert("ロジックの保存が完了しました。");
-                    window.location.href = "timeline.html"; // タイムラインに戻る
+                // ★修正箇所2：投稿完了後も timeline.html に戻るように変更
+                window.location.href = "timeline.html"; 
 
             } catch (error) {
                 console.error("Error:", error);
