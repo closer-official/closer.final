@@ -14,6 +14,7 @@
         
         <div style="display:flex; gap:10px; align-items:center;">
             <a href="post.html" class="alpha-btn" style="background:var(--gold-color); color:#000; font-weight:bold;">RECORD</a>
+            
             <button id="logout-btn" class="alpha-btn" style="border:1px solid #444; color:#666; font-size:0.7rem; background:transparent; cursor:pointer;">LOGOUT</button>
         </div>
     </header>
@@ -42,9 +43,10 @@
         // 1. ログインチェック & データ読み込み
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
+                // ログインしていなければトップへ
                 window.location.href = "index.html";
             } else {
-                // ユーザー名を表示（おまけ機能）
+                // ユーザー名を表示
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if(userDoc.exists()) {
@@ -57,23 +59,29 @@
             }
         });
 
-       // 2. ログアウト処理
-const logoutBtn = document.getElementById('logout-btn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        console.log("Logout Clicked"); // 動作確認用ログ
-        if(confirm('ログアウトしますか？')) {
-            signOut(auth)
-                .then(() => { window.location.href = "index.html"; })
-                .catch((e) => { 
-                    console.error(e); 
-                    window.location.href = "index.html"; 
-                });
+        // 2. ログアウト処理（強力版）
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                if(!confirm('ログアウトしますか？')) return;
+
+                // 安全策：3秒経ってもFirebaseが応答しなければ強制移動させる
+                const timeoutId = setTimeout(() => {
+                    console.log("Timeout: Forcing logout redirect");
+                    window.location.href = "index.html";
+                }, 3000);
+
+                try {
+                    await signOut(auth);
+                    clearTimeout(timeoutId); // 成功したらタイマー解除
+                    window.location.href = "index.html";
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    clearTimeout(timeoutId);
+                    window.location.href = "index.html"; // エラーでも移動
+                }
+            });
         }
-    });
-} else {
-    console.error("Logout button not found");
-}
 
         // 3. 投稿データ取得
         async function loadPosts() {
