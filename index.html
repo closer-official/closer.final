@@ -7,10 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    
-    <meta property="og:title" content="CLOSER | The Standard of Sales" />
-    <meta property="og:description" content="営業の実力は、口で証明せよ。" />
-    <meta property="og:type" content="website" />
     <link rel="icon" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
 </head>
@@ -26,59 +22,23 @@
     </header>
 
     <div id="public-view">
-        
         <div class="hero">
             <h1 class="fade-in">PROOF<br>OF<br><span class="gold-text">TALK</span></h1>
             <p class="fade-in">営業の実力は、口で証明せよ。</p>
         </div>
 
         <div class="container">
-            
             <section class="fade-in">
                 <div class="feature-box">
                     <p class="gold-text" style="font-size: 0.9rem; margin-bottom: 10px;">CONCEPT</p>
                     <h2>会社の名刺を捨てろ。</h2>
                     <p>
-                        あなたの営業スキルは、誰の資産ですか？<br>
-                        会社の実績でも、上司の手柄でもない。<br>
-                        本来、それはあなた個人の「資産」のはずです。<br><br>
                         CLOSERは、組織の枠を超え、<br>
                         マイク一本で実力を証明する<br>
                         完全実力主義のプラットフォームです。
                     </p>
                 </div>
             </section>
-
-            <div class="section-spacer"></div>
-
-            <section class="fade-in">
-                <h2 class="gold-text" style="margin-bottom: 40px;">THE SYSTEM</h2>
-                <div class="detail-grid">
-                    <div class="detail-card">
-                        <h3>LOG & EVALUATE</h3>
-                        <p>
-                            あなたのトーク（音声）や商談ロジックを記録し、ポートフォリオ化。<br>
-                            ユーザー同士がシビアに評価し合うことで、真の実力が可視化されます。
-                        </p>
-                    </div>
-                    <div class="detail-card">
-                        <h3>METABOLISM</h3>
-                        <p>
-                            ここには「見るだけ」の人間はいません。<br>
-                            活動しないユーザーは強制的に退会となり、待機列の熱意ある人間と入れ替わります。
-                        </p>
-                    </div>
-                    <div class="detail-card">
-                        <h3>EARN & SURVIVE</h3>
-                        <p>
-                            アプリ内独自の経済圏を構築。<br>
-                            評価される投稿にはコインが還元され、稼いだコインは現金化も可能。<br>
-                            「個」で稼ぐ未来を実装します。
-                        </p>
-                    </div>
-                </div>
-            </section>
-
         </div>
 
         <div class="join-section">
@@ -89,11 +49,25 @@
                     一般の方はウェイティングリストへの登録のみ可能です。
                 </p>
 
-                <div class="input-group">
-                    <label>EMAIL</label>
-                    <input type="email" class="input-field" placeholder="example@closer.jp">
+                <form id="register-form">
+                    <div class="input-group">
+                        <label>NAME</label>
+                        <input type="text" id="reg-name" class="input-field" placeholder="山田 太郎" required>
+                    </div>
+                    <div class="input-group">
+                        <label>EMAIL</label>
+                        <input type="email" class="input-field" placeholder="example@closer.jp" required>
+                    </div>
+                    <div class="input-group">
+                        <label>PASSWORD</label>
+                        <input type="password" class="input-field" placeholder="パスワード（6文字以上）" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-full btn-fill">ウェイティングリストに登録</button>
+                </form>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="app.html" style="color: #666; font-size: 0.8rem;">すでにアカウントをお持ちの方はログイン（仮）</a>
                 </div>
-                <a href="app.html" class="btn btn-full btn-fill">ウェイティングリストに登録</a>
             </div>
         </div>
 
@@ -103,23 +77,38 @@
     </div>
 
     <script src="js/main.js"></script>
-
+    
     <script type="module">
-        // 1. 設定ファイルを読み込む（ここが間違っていたので直しました）
-        import { auth, createUserWithEmailAndPassword, updateProfile, db, doc, setDoc, serverTimestamp } from "./js/firebase-config.js";
+        // 必要な機能をインターネットから直接読み込む
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 2. フォームなどの部品を取得
+        // あなたのFirebase設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
+            authDomain: "closer-official.firebaseapp.com",
+            projectId: "closer-official",
+            storageBucket: "closer-official.firebasestorage.app",
+            messagingSenderId: "1039215613610",
+            appId: "1:1039215613610:web:540ef7a026714e28dbe2d3",
+            measurementId: "G-LYK0THB2Z2"
+        };
+
+        // 初期化
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 登録処理
         const registerForm = document.getElementById('register-form');
         const submitBtn = document.querySelector('button[type="submit"]');
 
-        // 3. フォームがあるか確認して処理を開始
         if(registerForm) {
             registerForm.addEventListener('submit', async (e) => {
-                e.preventDefault(); // 画面リロードを防ぐ
+                e.preventDefault();
+                console.log("Submit button clicked"); // コンソール確認用
                 
-                // ★確認用：ボタンが押されたらアラートを出す
-                alert("登録ボタンが押されました！\nこれが出ればプログラムは正常です。");
-
                 const name = document.getElementById('reg-name').value;
                 const email = document.querySelector('input[type="email"]').value;
                 const pass = document.querySelector('input[type="password"]').value;
@@ -128,14 +117,14 @@
                     submitBtn.innerText = "通信中...";
                     submitBtn.disabled = true;
 
-                    // Firebaseでユーザーを作る
+                    // ユーザー作成
                     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                     const user = userCredential.user;
-                    
+
                     // プロフィール更新
                     await updateProfile(user, { displayName: name });
 
-                    // データベースに保存
+                    // データベース保存
                     await setDoc(doc(db, "users", user.uid), {
                         uid: user.uid,
                         name: name,
@@ -146,13 +135,12 @@
                         created_at: serverTimestamp()
                     });
 
-                    alert("登録成功！アプリへ移動します。");
+                    alert("WELCOME, " + name.toUpperCase());
                     window.location.href = "app.html";
 
                 } catch (error) {
-                    // エラーがあれば表示
-                    alert("エラーが発生しました:\n" + error.message);
-                    console.error(error);
+                    console.error("Error:", error);
+                    alert("エラー: " + error.message);
                     submitBtn.innerText = "ウェイティングリストに登録";
                     submitBtn.disabled = false;
                 }
