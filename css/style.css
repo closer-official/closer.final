@@ -59,12 +59,12 @@ header {
     box-sizing: border-box;
 }
 .logo { font-family: 'Cinzel', serif; font-size: 1.5rem; letter-spacing: 0.2em; font-weight: bold; }
-.alpha-btn {
+.Black-btn {
     font-family: 'Cinzel', serif; border: 1px solid var(--gold-color); color: var(--gold-color);
     padding: 8px 15px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; background: rgba(0,0,0,0.5);
     text-decoration: none;
 }
-.alpha-btn:hover { background: var(--gold-color); color: #000; }
+.Black-btn:hover { background: var(--gold-color); color: #000; }
 
 /* アニメーション */
 .fade-in { opacity: 0; transform: translateY(30px); transition: opacity 1s, transform 1s; }
