@@ -1,60 +1,80 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <link rel="icon" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLOSER | Dashboard</title> <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>CLOSER | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
 
-    <div id="app-view" style="display: block; opacity: 0; animation: fadeInApp 1s forwards;">
-        <header>
-            <div class="logo gold-text">CLOSER <span style="font-size:0.5em; color:#999;">APP</span></div>
-            <div class="alpha-btn" onclick="location.href='index.html'">LOGOUT</div>
-        </header>
+    <header>
+        <div class="logo gold-text">CLOSER <span style="font-size:0.5em; color:#999;">APP</span></div>
+        <a href="index.html" class="alpha-btn">LOGOUT</a>
+    </header>
 
-        <div class="container" style="padding-top: 100px;">
-            <div style="text-align: left; margin-bottom: 20px; font-size: 0.9rem;">
-                WELCOME, <span class="gold-text">USER</span>
+    <div id="app-view" class="container" style="padding-top: 100px;">
+        <div style="text-align: left; margin-bottom: 20px; font-size: 0.9rem;">
+            WELCOME, <span class="gold-text">GUEST</span>
+        </div>
+
+        <div class="rank-card">
+            <div style="font-size: 0.8rem; color: #888; letter-spacing: 0.1em;">CURRENT RANK</div>
+            <div class="rank-number gold-text">#<span id="rank-val">1,245</span></div>
+            <div style="font-size: 1.2rem; margin-top: 10px;">SCORE: <span id="score-val" style="font-weight: bold;">100</span> PT</div>
+            
+            <div style="margin-top: 20px; background: #222; height: 6px; width: 100%; border-radius: 3px;">
+                <div id="progress-bar" style="height: 100%; background: var(--gold-gradient); width: 10%; transition: width 1s;"></div>
+            </div>
+            <div style="font-size: 0.8rem; color: #ccc; margin-top: 8px; text-align: right;">
+                入場圏内まであと <span class="gold-text">400 PT</span>
+            </div>
+        </div>
+
+        <p style="font-size: 0.9rem; margin-bottom: 30px;">
+            以下のミッションを達成し、ランクを上げてください。<br>
+            上位ランカーから順に、Alpha版へ招待されます。
+        </p>
+
+        <div>
+            <div class="mission-item" onclick="alert('X連携画面へ（デモ）')">
+                <div>
+                    <div style="font-weight: bold;">X (Twitter) 連携</div>
+                    <div style="font-size: 0.8rem; color: var(--gold-color);">+50 PT</div>
+                </div>
+                <div style="font-family: 'Cinzel', serif; color: #444;">CONNECT</div>
             </div>
 
-            <div class="rank-card">
-                <div style="font-size: 0.8rem; color: #888; letter-spacing: 0.1em;">CURRENT RANK</div>
-                <div class="rank-number gold-text">#1,245</div>
-                <div style="font-size: 1.2rem; margin-top: 10px;">SCORE: <span style="font-weight: bold;">100</span> PT</div>
-                <div style="margin-top: 20px; background: #222; height: 6px; width: 100%; border-radius: 3px;">
-                    <div style="height: 100%; background: linear-gradient(135deg, #C5A059 0%, #E6C87F 50%, #C5A059 100%); width: 10%;"></div>
+            <div class="mission-item" onclick="alert('招待リンクをコピーしました')">
+                <div>
+                    <div style="font-weight: bold;">友人を招待する</div>
+                    <div style="font-size: 0.8rem; color: var(--gold-color);">+30 PT / 人</div>
                 </div>
-                <div style="font-size: 0.8rem; color: #ccc; margin-top: 8px; text-align: right;">NEXT RANK: <span class="gold-text">400 PT</span></div>
+                <div style="font-family: 'Cinzel', serif; color: #444;">SHARE</div>
             </div>
 
-            <div class="app-menu">
-                <p style="margin-bottom: 20px; color:#999;">DASHBOARD</p>
-                <div class="mission-item">
+            <div style="margin-top: 40px; border: 1px solid var(--gold-color); background: rgba(197, 160, 89, 0.05); padding: 20px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 1.1rem;" class="gold-text">FAST PASS</h3>
+                <p style="font-size: 0.85rem; color: #ccc; text-align: left; margin-bottom: 15px;">
+                    リリース前のメンバーシップ予約を行うことで、<br>
+                    入場が確約され、スタートダッシュが可能になります。
+                </p>
+                <div class="mission-item" style="border-color: var(--gold-color); margin-bottom:0;" onclick="alert('Stripe決済へ遷移します（デモ）')">
                     <div>
-                        <div style="font-weight: bold;">トークを録音する</div>
-                        <div style="font-size: 0.8rem; color: #C5A059;">RECORD</div>
+                        <div style="font-weight: bold;">Standard メンバー予約</div>
+                        <div style="font-size: 0.8rem; color: #fff;">月額 ¥500 → <strong>+1,000 PT</strong></div>
                     </div>
-                    <div style="font-family: 'Cinzel', serif; color: #444;">&rarr;</div>
-                </div>
-                <div class="mission-item">
-                    <div>
-                        <div style="font-weight: bold;">他者のトークを評価</div>
-                        <div style="font-size: 0.8rem; color: #C5A059;">REVIEW</div>
-                    </div>
-                    <div style="font-family: 'Cinzel', serif; color: #444;">&rarr;</div>
+                    <div style="font-family: 'Cinzel', serif; font-weight: bold;">PAY</div>
                 </div>
             </div>
         </div>
+        <div style="height: 50px;"></div>
     </div>
     
-    <style>
-        @keyframes fadeInApp { from { opacity: 0; } to { opacity: 1; } }
-    </style>
-
+    <script src="js/main.js"></script>
 </body>
 </html>

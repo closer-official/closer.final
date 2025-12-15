@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <link rel="icon" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLOSER | The Standard of Sales</title>
@@ -11,8 +9,10 @@
     <link rel="stylesheet" href="css/style.css">
     
     <meta property="og:title" content="CLOSER | The Standard of Sales" />
+    <meta property="og:description" content="営業の実力は、口で証明せよ。" />
     <meta property="og:type" content="website" />
-    <meta property="og:description" content="会社の名刺を捨てろ。マイク一本で実力を証明する、完全実力主義の営業プラットフォーム。" />
+    <link rel="icon" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
 
@@ -20,46 +20,86 @@
         <div id="opening-logo" class="gold-text">CLOSER</div>
     </div>
 
-    <div id="landing-view">
-        <header>
-            <div class="logo gold-text">CLOSER</div>
-            <a href="javascript:void(0)" class="alpha-btn" onclick="alert('ブラック会員ページへ')">BLACK MEMBER</a>
-        </header>
+    <header>
+        <div class="logo gold-text">CLOSER</div>
+        <a href="javascript:void(0)" class="alpha-btn" onclick="alert('Alpha版は準備中です')">ALPHA 50</a>
+    </header>
 
-        <main class="container fade-in">
-            <section class="founder-section">
-                <div class="profile-area">
-                    <div class="profile-circle"></div>
-                    <p class="founder-name gold-text">FOUNDER</p>
-                </div>
-                <div class="story-area">
-                    <h2>開発ストーリー</h2>
-                    <p>
-                        「営業の価値は、誰のものか」<br>
-                        組織の看板を外した時、あなたの手元に残るものは何ですか？<br>
-                        CLOSERは、マイク一本で実力を証明し、個人の資産となる場所を作ります。
-                    </p>
-                </div>
-            </section>
-
-            <section class="app-description">
-                <h2 class="section-title gold-text">ABOUT CLOSER</h2>
-                <div class="desc-box">
-                    <h3>実力主義の証明空間</h3>
-                    <p>
-                        あなたのトークスキルを可視化・資産化するアプリ。<br>
-                        本物だけが生き残るエコシステム。
-                    </p>
-                </div>
-            </section>
-
-            <section class="action-section">
-                <button class="btn btn-full btn-fill" onclick="location.href='app.html'">新規会員登録</button>
-                <button class="btn btn-full" onclick="location.href='app.html'">ログイン</button>
-            </section>
-        </main>
+    <div id="public-view">
         
-        <footer class="lp-footer">&copy; 2025 CLOSER Project.</footer>
+        <div class="hero">
+            <h1 class="fade-in">PROOF<br>OF<br><span class="gold-text">TALK</span></h1>
+            <p class="fade-in">営業の実力は、口で証明せよ。</p>
+        </div>
+
+        <div class="container">
+            
+            <section class="fade-in">
+                <div class="feature-box">
+                    <p class="gold-text" style="font-size: 0.9rem; margin-bottom: 10px;">CONCEPT</p>
+                    <h2>会社の名刺を捨てろ。</h2>
+                    <p>
+                        あなたの営業スキルは、誰の資産ですか？<br>
+                        会社の実績でも、上司の手柄でもない。<br>
+                        本来、それはあなた個人の「資産」のはずです。<br><br>
+                        CLOSERは、組織の枠を超え、<br>
+                        マイク一本で実力を証明する<br>
+                        完全実力主義のプラットフォームです。
+                    </p>
+                </div>
+            </section>
+
+            <div class="section-spacer"></div>
+
+            <section class="fade-in">
+                <h2 class="gold-text" style="margin-bottom: 40px;">THE SYSTEM</h2>
+                <div class="detail-grid">
+                    <div class="detail-card">
+                        <h3>LOG & EVALUATE</h3>
+                        <p>
+                            あなたのトーク（音声）や商談ロジックを記録し、ポートフォリオ化。<br>
+                            ユーザー同士がシビアに評価し合うことで、真の実力が可視化されます。
+                        </p>
+                    </div>
+                    <div class="detail-card">
+                        <h3>METABOLISM</h3>
+                        <p>
+                            ここには「見るだけ」の人間はいません。<br>
+                            活動しないユーザーは強制的に退会となり、待機列の熱意ある人間と入れ替わります。
+                        </p>
+                    </div>
+                    <div class="detail-card">
+                        <h3>EARN & SURVIVE</h3>
+                        <p>
+                            アプリ内独自の経済圏を構築。<br>
+                            評価される投稿にはコインが還元され、稼いだコインは現金化も可能。<br>
+                            「個」で稼ぐ未来を実装します。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <div class="join-section">
+            <div class="container fade-in">
+                <h2 class="gold-text" style="margin-bottom: 20px;">JOIN THE WAITING LIST</h2>
+                <p style="margin-bottom: 40px; color: #888;">
+                    現在、完全招待制のため<br>
+                    一般の方はウェイティングリストへの登録のみ可能です。
+                </p>
+
+                <div class="input-group">
+                    <label>EMAIL</label>
+                    <input type="email" class="input-field" placeholder="example@closer.jp">
+                </div>
+                <a href="app.html" class="btn btn-full btn-fill">ウェイティングリストに登録</a>
+            </div>
+        </div>
+
+        <footer style="padding: 30px; text-align: center; color: #333; font-size: 0.8rem;">
+            &copy; 2025 CLOSER Project.
+        </footer>
     </div>
 
     <script src="js/main.js"></script>

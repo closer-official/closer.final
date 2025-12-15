@@ -1,0 +1,119 @@
+:root {
+    --bg-color: #050505;
+    --card-bg: #111;
+    --text-color: #f0f0f0;
+    --gold-color: #C5A059;
+    --gold-gradient: linear-gradient(135deg, #C5A059 0%, #E6C87F 50%, #C5A059 100%);
+    --gray-text: #999;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Noto Serif JP', serif;
+    overflow-x: hidden;
+    background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);
+}
+
+/* 共通タイポグラフィ */
+h1, h2, h3, h4 { font-weight: normal; letter-spacing: 0.1em; margin: 0; }
+.gold-text {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--gold-color);
+}
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+}
+.section-spacer { height: 100px; }
+
+/* ボタン */
+.btn {
+    display: inline-block;
+    padding: 15px 30px;
+    border: 1px solid var(--gold-color);
+    color: var(--gold-color);
+    text-decoration: none;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    transition: all 0.3s;
+    cursor: pointer;
+    background: transparent;
+    font-family: 'Cinzel', serif;
+}
+.btn:hover { background: var(--gold-color); color: #000; box-shadow: 0 0 15px rgba(197, 160, 89, 0.5); }
+.btn-fill { background: var(--gold-color); color: #000; font-weight: bold; }
+.btn-full { width: 100%; box-sizing: border-box; margin-top: 10px; display: block; text-align: center; }
+
+/* ヘッダー */
+header {
+    position: fixed; top: 0; left: 0; width: 100%; padding: 20px;
+    display: flex; justify-content: space-between; align-items: center; z-index: 100;
+    background: linear-gradient(to bottom, rgba(5,5,5,0.9), rgba(5,5,5,0));
+    box-sizing: border-box;
+}
+.logo { font-family: 'Cinzel', serif; font-size: 1.5rem; letter-spacing: 0.2em; font-weight: bold; }
+.alpha-btn {
+    font-family: 'Cinzel', serif; border: 1px solid var(--gold-color); color: var(--gold-color);
+    padding: 8px 15px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; background: rgba(0,0,0,0.5);
+    text-decoration: none;
+}
+.alpha-btn:hover { background: var(--gold-color); color: #000; }
+
+/* アニメーション */
+.fade-in { opacity: 0; transform: translateY(30px); transition: opacity 1s, transform 1s; }
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+
+/* オープニング画面 */
+#opening {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+    background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center;
+    transition: opacity 1s;
+}
+#opening-logo { font-family: 'Cinzel', serif; font-size: 3rem; opacity: 0; transition: opacity 1s; letter-spacing: 0.2em; }
+
+/* ======= LP (Public View) ======= */
+.hero { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.hero h1 { font-family: 'Cinzel', serif; font-size: 3.5rem; line-height: 1.2; margin-bottom: 20px; }
+.hero p { font-size: 1rem; color: var(--gray-text); letter-spacing: 0.2em; }
+
+.feature-box { text-align: left; margin-bottom: 60px; border-left: 1px solid #333; padding-left: 30px; }
+.feature-box h2 { font-size: 1.8rem; margin-bottom: 15px; }
+.feature-box p { font-size: 1rem; line-height: 2; color: #ccc; }
+
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; text-align: left; }
+.detail-card { background: var(--card-bg); padding: 30px; border: 1px solid #333; }
+.detail-card h3 { font-family: 'Cinzel', serif; margin-bottom: 15px; color: var(--gold-color); font-size: 1.2rem; }
+.detail-card p { font-size: 0.9rem; color: var(--gray-text); line-height: 1.8; }
+
+.join-section { background: #0a0a0a; padding: 80px 20px; border-top: 1px solid #222; margin-top: 50px; }
+.input-group { margin-bottom: 20px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; }
+.input-group label { display: block; color: var(--gold-color); font-size: 0.8rem; margin-bottom: 5px; }
+.input-field {
+    width: 100%; padding: 15px; background: #111; border: 1px solid #333;
+    color: #fff; font-size: 1rem; box-sizing: border-box; font-family: 'Noto Serif JP', serif;
+}
+.input-field:focus { outline: none; border-color: var(--gold-color); }
+
+/* ======= App (Dashboard View) ======= */
+.rank-card {
+    background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 40px 20px;
+    margin-bottom: 40px; position: relative; text-align: center;
+}
+.rank-number { font-family: 'Cinzel', serif; font-size: 4rem; line-height: 1; }
+.mission-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #111; border: 1px solid #222; padding: 20px; margin-bottom: 15px;
+    cursor: pointer; transition: all 0.3s;
+}
+.mission-item:hover { border-color: var(--gold-color); transform: translateX(5px); }
+
+/* アプリ画面のフェードイン */
+@keyframes fadeInApp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+#app-view { animation: fadeInApp 1s ease forwards; }
