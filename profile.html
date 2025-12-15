@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLOSER | Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo gold-text">PROFILE</div>
+        <a href="timeline.html" class="alpha-btn">BACK</a>
+    </header>
+
+    <div class="container" style="padding-top: 100px; text-align: center;">
+        
+        <img id="profile-img" src="" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid #C5A059; margin-bottom: 20px;">
+        
+        <h2 id="profile-name" class="gold-text" style="margin-bottom: 10px;">LOADING...</h2>
+        <p id="profile-email" style="color: #888; margin-bottom: 40px;">...</p>
+
+        <button id="logout-btn" class="btn btn-full" style="max-width: 300px; margin: 0 auto; border-color: #ff4444; color: #ff4444;">
+            LOGOUT
+        </button>
+
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
+
+        const img = document.getElementById('profile-img');
+        const name = document.getElementById('profile-name');
+        const email = document.getElementById('profile-email');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                img.src = user.photoURL || "https://via.placeholder.com/100?text=USER"; // 画像がない場合のダミー
+                name.innerText = user.displayName;
+                email.innerText = user.email;
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if(confirm('ログアウトしますか？')) {
+                signOut(auth).then(() => window.location.href = "index.html");
+            }
+        });
+    </script>
+</body>
+</html>
