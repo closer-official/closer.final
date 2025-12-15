@@ -15,34 +15,108 @@
 
     <div class="container" style="padding-top: 100px; text-align: center;">
         
-        <img id="profile-img" src="" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid #C5A059; margin-bottom: 20px;">
-        
-        <h2 id="profile-name" class="gold-text" style="margin-bottom: 10px;">LOADING...</h2>
-        <p id="profile-email" style="color: #888; margin-bottom: 40px;">...</p>
+        <div style="position: relative; width: 120px; height: 120px; margin: 0 auto 20px;">
+            <img id="profile-img" src="" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; border: 2px solid #C5A059; object-fit: cover;">
+            
+            <label for="file-input" style="position: absolute; bottom: 0; right: 0; background: #C5A059; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                <span style="font-size: 1.2rem; color: #000;">📷</span>
+            </label>
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
+        </div>
 
-        <button id="logout-btn" class="btn btn-full" style="max-width: 300px; margin: 0 auto; border-color: #ff4444; color: #ff4444;">
+        <button id="upload-btn" class="alpha-btn" style="display:none; margin: 0 auto 20px; background:var(--gold-color); color:#000; font-weight:bold;">
+            変更を保存する
+        </button>
+        
+        <h2 id="profile-name" class="gold-text" style="margin-bottom: 10px; font-family:'Cinzel', serif;">LOADING...</h2>
+        <p id="profile-email" style="color: #666; margin-bottom: 40px; font-size:0.9rem;">...</p>
+
+        <div style="border-top:1px solid #333; margin: 30px 0;"></div>
+
+        <button id="logout-btn" class="btn btn-full" style="max-width: 300px; margin: 0 auto; border-color: #ff4444; color: #ff4444; font-size:0.8rem;">
             LOGOUT
         </button>
 
     </div>
 
     <script type="module">
-        import { auth, onAuthStateChanged, signOut } from "./js/firebase-config.js";
+        import { 
+            auth, onAuthStateChanged, signOut, updateProfile, 
+            storage, ref, uploadBytes, getDownloadURL,
+            db, doc, updateDoc 
+        } from "./js/firebase-config.js";
 
         const img = document.getElementById('profile-img');
         const name = document.getElementById('profile-name');
         const email = document.getElementById('profile-email');
+        const fileInput = document.getElementById('file-input');
+        const uploadBtn = document.getElementById('upload-btn');
+        
+        let currentUser = null;
+        let selectedFile = null;
 
+        // 1. ユーザー情報読み込み
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                img.src = user.photoURL || "https://via.placeholder.com/100?text=USER"; // 画像がない場合のダミー
-                name.innerText = user.displayName;
+                currentUser = user;
+                // 画像がなければプレースホルダー
+                img.src = user.photoURL || "https://via.placeholder.com/150/000000/FFFFFF/?text=NO+IMG";
+                name.innerText = user.displayName || "NO NAME";
                 email.innerText = user.email;
             } else {
                 window.location.href = "index.html";
             }
         });
 
+        // 2. ファイル選択時のプレビュー処理
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // サイズチェック (2MB以下)
+                if(file.size > 2 * 1024 * 1024) {
+                    alert("画像サイズは2MB以下にしてください");
+                    return;
+                }
+                selectedFile = file;
+                img.src = URL.createObjectURL(file); // プレビュー
+                uploadBtn.style.display = 'block';   // ボタン表示
+            }
+        });
+
+        // 3. アップロード実行
+        uploadBtn.addEventListener('click', async () => {
+            if (!selectedFile || !currentUser) return;
+
+            uploadBtn.innerText = "UPLOADING...";
+            uploadBtn.disabled = true;
+
+            try {
+                // Storageの保存場所: users/{uid}/profile.jpg
+                // 拡張子に関わらず profile.jpg として上書き保存することで容量節約
+                const storageRef = ref(storage, `users/${currentUser.uid}/profile.jpg`);
+                
+                await uploadBytes(storageRef, selectedFile);
+                const photoURL = await getDownloadURL(storageRef);
+
+                // Auth情報更新
+                await updateProfile(currentUser, { photoURL: photoURL });
+
+                // Firestore情報更新 (重要: タイムラインのアイコン用)
+                const userRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userRef, { photoURL: photoURL });
+
+                alert("プロフィール画像を更新しました");
+                location.reload(); // 再読み込みして反映
+
+            } catch (error) {
+                console.error(error);
+                alert("エラーが発生しました: " + error.message);
+                uploadBtn.innerText = "変更を保存する";
+                uploadBtn.disabled = false;
+            }
+        });
+
+        // 4. ログアウト
         document.getElementById('logout-btn').addEventListener('click', () => {
             if(confirm('ログアウトしますか？')) {
                 signOut(auth).then(() => window.location.href = "index.html");
