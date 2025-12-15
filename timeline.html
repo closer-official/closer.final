@@ -14,7 +14,7 @@
         
         <div style="display:flex; gap:10px; align-items:center;">
             <a href="post.html" class="alpha-btn" style="background:var(--gold-color); color:#000; font-weight:bold;">RECORD</a>
-            <div id="logout-btn" class="alpha-btn" style="border:1px solid #444; color:#666; font-size:0.7rem;">LOGOUT</div>
+            <button id="logout-btn" class="alpha-btn" style="border:1px solid #444; color:#666; font-size:0.7rem; background:transparent; cursor:pointer;">LOGOUT</button>
         </div>
     </header>
 
@@ -58,20 +58,22 @@
         });
 
         // 2. ログアウト処理
-document.getElementById('logout-btn').addEventListener('click', () => {
-    if(confirm('ログアウトしますか？')) {
-        signOut(auth)
-            .then(() => {
-                // ログアウト成功時
-                window.location.href = "index.html";
-            })
-            .catch((error) => {
-                console.error("ログアウトエラー:", error);
-                // エラーが発生しても強制的にトップへ戻す
-                window.location.href = "index.html";
-            });
-    }
-});
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        console.log("Logout Clicked"); // 動作確認用ログ
+        if(confirm('ログアウトしますか？')) {
+            signOut(auth)
+                .then(() => { window.location.href = "index.html"; })
+                .catch((e) => { 
+                    console.error(e); 
+                    window.location.href = "index.html"; 
+                });
+        }
+    });
+} else {
+    console.error("Logout button not found");
+}
 
         // 3. 投稿データ取得
         async function loadPosts() {
