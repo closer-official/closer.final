@@ -1,9 +1,17 @@
 // js/firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// ★Googleログイン用の機能（GoogleAuthProvider, signInWithPopup）を追加
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut, 
+    updateProfile,
+    GoogleAuthProvider, 
+    signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// ★ここを修正：必要な機能をすべて追加しました
 import { 
     getFirestore, 
     doc, 
@@ -32,7 +40,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ★ここも修正：輸出すべき道具をすべて並べました
 export { 
     auth, 
     db, 
@@ -45,10 +52,12 @@ export {
     setDoc, 
     getDoc, 
     serverTimestamp,
-    collection, // 追加
-    query,      // 追加
-    orderBy,    // 追加
-    getDocs,    // 追加
-    updateDoc,  // 追加
-    increment   // 追加
+    collection, 
+    query, 
+    orderBy, 
+    getDocs, 
+    updateDoc, 
+    increment,
+    GoogleAuthProvider, // 追加
+    signInWithPopup     // 追加
 };
