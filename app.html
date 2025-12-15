@@ -75,6 +75,54 @@
         <div style="height: 50px;"></div>
     </div>
     
-    <script src="js/main.js"></script>
+    <script type="module">
+        import { auth, db, doc, getDoc, onAuthStateChanged, signOut } from "./js/firebase-config.js";
+
+        // 1. ログイン状態の監視（ここが「門番」の役割をします）
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // --- ログインしている時 ---
+                console.log("Login User:", user.uid);
+                
+                try {
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        
+                        document.getElementById('user-name').innerText = data.name.toUpperCase();
+                        document.getElementById('user-rank').innerText = data.rank || "Standard";
+                        document.getElementById('user-score').innerText = data.score_act || 0;
+                        
+                        const score = data.score_act || 0;
+                        const percent = Math.min(100, (score / 400) * 100);
+                        document.getElementById('progress-bar').style.width = percent + "%";
+                    }
+                } catch (e) {
+                    console.error("Error:", e);
+                }
+
+            } else {
+                // --- ログアウトした（またはログインしていない）時 ---
+                // ★ここで自動的に index.html に戻されます
+                window.location.href = "index.html";
+            }
+        });
+
+        // 2. ログアウトボタンの処理
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if(confirm("ログアウトしますか？")) {
+                // ★修正点：ここでは「サインアウトする」ことだけに集中します。
+                // 画面遷移（window.location...）は上の「門番」がやってくれるので削除しました。
+                signOut(auth).catch((error) => {
+                    console.error("Logout Error:", error);
+                    alert("ログアウトに失敗しました");
+                });
+            }
+        });
+    </script>
+</body>
+</html>
 </body>
 </html>
