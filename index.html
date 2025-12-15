@@ -79,35 +79,17 @@
     <script src="js/main.js"></script>
     
     <script type="module">
-        // 必要な機能をインターネットから直接読み込む
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // "./js/firebase-config.js" から道具を借りてくる
+        import { auth, createUserWithEmailAndPassword, updateProfile, db, doc, setDoc, serverTimestamp } 
+            from "./js/firebase-config.js";
 
-        // あなたのFirebase設定
-        const firebaseConfig = {
-            apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
-            authDomain: "closer-official.firebaseapp.com",
-            projectId: "closer-official",
-            storageBucket: "closer-official.firebasestorage.app",
-            messagingSenderId: "1039215613610",
-            appId: "1:1039215613610:web:540ef7a026714e28dbe2d3",
-            measurementId: "G-LYK0THB2Z2"
-        };
-
-        // 初期化
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // 登録処理
         const registerForm = document.getElementById('register-form');
         const submitBtn = document.querySelector('button[type="submit"]');
 
         if(registerForm) {
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                console.log("Submit button clicked"); // コンソール確認用
+                console.log("Submit button clicked");
                 
                 const name = document.getElementById('reg-name').value;
                 const email = document.querySelector('input[type="email"]').value;
@@ -117,14 +99,12 @@
                     submitBtn.innerText = "通信中...";
                     submitBtn.disabled = true;
 
-                    // ユーザー作成
+                    // ここからはさっきと同じ
                     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                     const user = userCredential.user;
 
-                    // プロフィール更新
                     await updateProfile(user, { displayName: name });
 
-                    // データベース保存
                     await setDoc(doc(db, "users", user.uid), {
                         uid: user.uid,
                         name: name,

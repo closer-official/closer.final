@@ -1,11 +1,13 @@
-// Firebaseの設定ファイル
+// js/firebase-config.js
+// ここには「設定」と「道具の準備」だけを書きます
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// あなたのFirebase設定
 const firebaseConfig = {
   apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
   authDomain: "closer-official.firebaseapp.com",
@@ -16,9 +18,10 @@ const firebaseConfig = {
   measurementId: "G-LYK0THB2Z2"
 };
 
+// 初期化
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-export { auth, db, analytics, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp };
+// 他のファイルで使う道具を輸出（エクスポート）する
+export { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp };
