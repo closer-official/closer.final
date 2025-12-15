@@ -52,49 +52,60 @@
     <script src="js/main.js"></script>
 
     <script type="module">
-        import { auth, GoogleAuthProvider, signInWithPopup, db, doc, getDoc, setDoc, serverTimestamp } 
+        import { auth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, db, doc, getDoc, setDoc, serverTimestamp } 
         from "./js/firebase-config.js";
 
         const loginBtn = document.getElementById('google-login-btn');
 
-        loginBtn.addEventListener('click', async () => {
-            try {
-                // 1. Googleでログイン（ポップアップ）
-                const provider = new GoogleAuthProvider();
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
+        // 1. ページ読み込み時に「Googleから戻ってきたか？」を確認する
+        // （リダイレクト方式では、戻ってきた瞬間にこの処理が走ります）
+        getRedirectResult(auth)
+            .then(async (result) => {
+                if (result) {
+                    // ログイン成功して戻ってきた場合
+                    const user = result.user;
+                    console.log("Google Login Success:", user.email);
 
-                console.log("Google Login Success:", user.email);
-
-                // 2. データベースを確認（すでに会員かどうか？）
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (!userSnap.exists()) {
-                    // 新規ユーザーならDBに登録
-                    await setDoc(userRef, {
-                        uid: user.uid,
-                        name: user.displayName, // Googleの名前を自動取得
-                        email: user.email,
-                        rank: "Standard",
-                        role: "Observer",
-                        score_act: 0,
-                        created_at: serverTimestamp()
-                    });
-                    alert(`WELCOME, ${user.displayName.toUpperCase()}`);
-                } else {
-                    // 既存ユーザーなら「おかえり」
-                    // alert(`WELCOME BACK, ${user.displayName.toUpperCase()}`);
+                    // DB登録・更新処理
+                    await handleUserDatabase(user);
+                    
+                    // タイムラインへ移動
+                    window.location.href = "timeline.html";
                 }
-
-                // 3. タイムラインへ移動
-                window.location.href = "timeline.html";
-
-            } catch (error) {
+            })
+            .catch((error) => {
                 console.error("Login Error:", error);
-                alert("ログインに失敗しました。\n" + error.message);
-            }
+                alert("ログインエラーが発生しました。\n" + error.message);
+            });
+
+        // 2. ボタンが押されたら「Googleへ行ってらっしゃい」と送り出す
+        loginBtn.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithRedirect(auth, provider); // 画面が切り替わります
         });
+
+        // （共通関数）ユーザー情報をDBに保存する処理
+        async function handleUserDatabase(user) {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                // 新規ユーザー登録
+                await setDoc(userRef, {
+                    uid: user.uid,
+                    name: user.displayName,
+                    email: user.email,
+                    rank: "Standard",
+                    role: "Observer",
+                    score_act: 0,
+                    created_at: serverTimestamp()
+                });
+                alert(`WELCOME, ${user.displayName.toUpperCase()}`);
+            } else {
+                // 既存ユーザー
+                // alert(`WELCOME BACK, ${user.displayName.toUpperCase()}`);
+            }
+        }
     </script>
 </body>
 </html>

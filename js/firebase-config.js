@@ -1,15 +1,15 @@
 // js/firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-// ★Googleログイン用の機能（GoogleAuthProvider, signInWithPopup）を追加
+
+// ★ここを変更：signInWithPopup を削除し、signInWithRedirect と getRedirectResult を追加
 import { 
     getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
     onAuthStateChanged, 
     signOut, 
     updateProfile,
     GoogleAuthProvider, 
-    signInWithPopup
+    signInWithRedirect, // 追加：画面遷移でログイン
+    getRedirectResult   // 追加：戻ってきた時の処理
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { 
@@ -43,8 +43,6 @@ const db = getFirestore(app);
 export { 
     auth, 
     db, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
     onAuthStateChanged, 
     signOut, 
     updateProfile, 
@@ -58,6 +56,7 @@ export {
     getDocs, 
     updateDoc, 
     increment,
-    GoogleAuthProvider, // 追加
-    signInWithPopup     // 追加
+    GoogleAuthProvider, 
+    signInWithRedirect, // 輸出
+    getRedirectResult   // 輸出
 };
