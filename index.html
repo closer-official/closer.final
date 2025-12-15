@@ -3,96 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLOSER | Debug Mode</title>
+    <title>CLOSER</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    
-    <style>
-        #debug-console {
-            background: #330000;
-            color: #ffcccc;
-            padding: 10px;
-            font-size: 12px;
-            font-family: monospace;
-            border-bottom: 1px solid red;
-            display: none; /* エラーがないときは消しておく */
-            word-break: break-all;
-        }
-        /* 強制的にすべて表示させる */
-        .fade-in { opacity: 1 !important; transform: none !important; }
-        #opening { display: none !important; }
-    </style>
 </head>
 <body>
-    <div id="debug-console"></div>
 
-    <script type="module">
-        // ★ここを書き換えました (signInWithRedirect -> signInWithPopup)
-        import { auth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, db, doc, getDoc, setDoc, serverTimestamp } 
-        from "./js/firebase-config.js";
-
-        const loginBtn = document.getElementById('google-login-btn');
-        const loadingMsg = document.getElementById('loading-msg');
-        const debug = document.getElementById('debug-console');
-
-        // 読み込み確認ログ
-        if(debug) {
-            debug.style.display = 'block';
-            debug.innerHTML += "System Loading (Popup Mode)...<br>";
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                if(debug) debug.innerHTML += "User found: " + user.email + "<br>";
-                if(loginBtn) loginBtn.style.display = 'none';
-                if(loadingMsg) loadingMsg.style.display = 'block';
-                
-                try {
-                    await handleUserDatabase(user);
-                    // ログイン成功したら移動
-                    window.location.href = "timeline.html";
-                } catch (e) {
-                    if(debug) debug.innerHTML += "DB Error: " + e.message + "<br>";
-                }
-            }
-        });
-
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                if(debug) debug.innerHTML += "Button Clicked. Opening Popup...<br>";
-                const provider = new GoogleAuthProvider();
-                
-                // ★ここを書き換えました！
-                // ポップアップでログイン（画面遷移しないのでループしない）
-                signInWithPopup(auth, provider)
-                    .then((result) => {
-                        if(debug) debug.innerHTML += "Popup Success!<br>";
-                        // 成功すると自動的に上の onAuthStateChanged が動きます
-                    })
-                    .catch((error) => {
-                        if(debug) debug.innerHTML += "Auth Error: " + error.message + "<br>";
-                        alert("ログインエラー: " + error.message);
-                    });
-            });
-        }
-
-        async function handleUserDatabase(user) {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) {
-                await setDoc(userRef, {
-                    uid: user.uid,
-                    name: user.displayName,
-                    email: user.email,
-                    rank: "Standard",
-                    role: "Observer",
-                    score_act: 0,
-                    created_at: serverTimestamp()
-                });
-            }
-        }
-    </script>
+    <div id="opening" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; display:flex; justify-content:center; align-items:center; pointer-events:none;">
+        <div id="opening-logo" class="gold-text" style="font-family:'Cinzel',serif; font-size:3rem; opacity:0; transition:opacity 1s;">CLOSER</div>
+    </div>
 
     <header>
         <div class="logo gold-text">CLOSER</div>
@@ -101,11 +21,11 @@
 
     <div id="public-view">
         <div class="hero">
-            <h1>PROOF<br>OF<br><span class="gold-text">TALK</span></h1>
-            <p>営業の実力は、口で証明せよ。</p>
+            <h1 class="fade-in">PROOF<br>OF<br><span class="gold-text">TALK</span></h1>
+            <p class="fade-in">営業の実力は、口で証明せよ。</p>
         </div>
 
-        <div class="join-section">
+        <div class="join-section fade-in">
             <div class="container">
                 
                 <h2 class="gold-text" style="margin-bottom: 20px;">MEMBERSHIP LOGIN</h2>
@@ -117,7 +37,7 @@
                 <button id="google-login-btn" class="btn btn-full btn-fill" style="max-width: 300px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
                     ENTER WITH GOOGLE
                 </button>
-                <p id="loading-msg" style="color:var(--gold-color); display:none; margin-top:10px;">AUTHENTICATING...</p>
+                <p id="loading-msg" style="color:var(--gold-color); display:none; margin-top:10px; text-align:center;">AUTHENTICATING...</p>
 
             </div>
         </div>
@@ -127,46 +47,51 @@
         </footer>
     </div>
 
+    <script src="js/main.js"></script>
+
     <script type="module">
-        // パスの確認: jsフォルダの中にあるか確認してください
-        import { auth, GoogleAuthProvider, signInWithRedirect, onAuthStateChanged, db, doc, getDoc, setDoc, serverTimestamp } 
+        import { auth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, db, doc, getDoc, setDoc, serverTimestamp } 
         from "./js/firebase-config.js";
 
         const loginBtn = document.getElementById('google-login-btn');
         const loadingMsg = document.getElementById('loading-msg');
 
-        // 読み込み確認ログ
-        const debug = document.getElementById('debug-console');
-        debug.style.display = 'block';
-        debug.innerHTML += "System Loading...<br>";
-
+        // 1. ログイン状態の監視（すでにログイン済みなら移動）
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                debug.innerHTML += "User found: " + user.email + "<br>";
+                // ユーザーがいる＝ログイン成功
                 if(loginBtn) loginBtn.style.display = 'none';
                 if(loadingMsg) loadingMsg.style.display = 'block';
                 
                 try {
                     await handleUserDatabase(user);
-                    window.location.href = "timeline.html";
+                    window.location.href = "timeline.html"; // 移動！
                 } catch (e) {
-                    debug.innerHTML += "DB Error: " + e.message + "<br>";
+                    console.error(e);
+                    alert("データベースエラー: " + e.message);
                 }
-            } else {
-                debug.innerHTML += "No user logged in. Ready.<br>";
             }
         });
 
+        // 2. ボタンが押されたら「ポップアップ」を出す
         if (loginBtn) {
             loginBtn.addEventListener('click', () => {
-                debug.innerHTML += "Button Clicked. Redirecting...<br>";
                 const provider = new GoogleAuthProvider();
-                signInWithPopup(auth, provider).catch(err => {
-                    debug.innerHTML += "Auth Error: " + err.message + "<br>";
-                });
+                
+                // ★ここが重要：画面遷移させずにポップアップでログイン
+                signInWithPopup(auth, provider)
+                    .then((result) => {
+                        // 成功したら何もしなくてOK（上のonAuthStateChangedが勝手に動くため）
+                        console.log("Popup Login Success");
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        alert("ログインできませんでした。\n" + error.message);
+                    });
             });
         }
 
+        // ユーザー情報をDBに保存する関数
         async function handleUserDatabase(user) {
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);

@@ -1,11 +1,11 @@
-// main.js
+// js/main.js
 
 window.addEventListener('load', () => {
     // 要素を取得
     const logo = document.getElementById('opening-logo');
     const opening = document.getElementById('opening');
 
-    // 1. オープニングアニメーション (index.html用)
+    // 1. オープニングアニメーション
     if (opening && logo) {
         // ロゴをフェードイン
         setTimeout(() => { 
@@ -32,8 +32,3 @@ window.addEventListener('load', () => {
 
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 });
-/* 既存の #opening の設定があるなら、そこに書き足してもOKです */
-#opening {
-    /* これを追加すると、クリックやタップがこの要素を「すり抜け」ます */
-    pointer-events: none; 
-}

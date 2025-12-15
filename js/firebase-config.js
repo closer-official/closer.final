@@ -1,15 +1,13 @@
 // js/firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
-// ★ここを変更：signInWithPopup を削除し、signInWithRedirect と getRedirectResult を追加
 import { 
     getAuth, 
     onAuthStateChanged, 
     signOut, 
     updateProfile,
     GoogleAuthProvider, 
-    signInWithPopup, // 追加：画面遷移でログイン
-    getRedirectResult   // 追加：戻ってきた時の処理
+    signInWithPopup // ★重要：これを確実にインポート
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { 
@@ -57,6 +55,5 @@ export {
     updateDoc, 
     increment,
     GoogleAuthProvider, 
-    signInWithPopup, // 輸出
-    getRedirectResult   // 輸出
+    signInWithPopup // ★重要：これをエクスポート
 };
