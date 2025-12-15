@@ -62,11 +62,13 @@
     <script type="module">
         import { auth, db, doc, getDoc, onAuthStateChanged, signOut } from "./js/firebase-config.js";
 
-        // 1. ログイン監視（門番）
+        // 1. ログイン監視
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // --- ログイン中 ---
+                // --- ログイン成功時 ---
                 console.log("Login User:", user.uid);
+                document.getElementById('user-name').innerText = "CONNECTING..."; // とりあえず表示
+
                 try {
                     const docRef = doc(db, "users", user.uid);
                     const docSnap = await getDoc(docRef);
@@ -77,44 +79,39 @@
                         document.getElementById('user-rank').innerText = data.rank || "Standard";
                         document.getElementById('user-score').innerText = data.score_act || 0;
 
-                        // プログレスバー演出
                         const score = data.score_act || 0;
                         const percent = Math.min(100, (score / 400) * 100);
                         document.getElementById('progress-bar').style.width = percent + "%";
+                    } else {
+                        console.error("ユーザーデータが見つかりません (No Document)");
+                        document.getElementById('user-name').innerText = "NO DATA";
                     }
                 } catch (e) {
-                    console.error("Error:", e);
+                    console.error("データ取得エラー:", e);
+                    document.getElementById('user-name').innerText = "ERROR";
                 }
             } else {
-                // --- ログアウト状態 ---
-                // 強制的にトップページへ戻す
-                window.location.href = "index.html";
+                // --- ログアウト状態（ここがループの原因候補） ---
+                console.log("ユーザーはログインしていません。");
+                
+                // ★【重要】ループを止めるため、リダイレクトを一時的に無効化しました
+                // window.location.href = "index.html"; 
+                
+                // 代わりに画面に警告を出します
+                document.getElementById('user-name').innerText = "NOT LOGGED IN";
+                document.body.style.backgroundColor = "#300"; // 画面を少し赤くして警告
+                alert("現在はログアウト状態です。\nループを防ぐため、トップページへの自動移動を停止しました。");
             }
         });
 
-        // 2. ログアウト処理（修正版）
+        // 2. ログアウト処理
         const logoutBtn = document.getElementById('logout-btn');
-        
         logoutBtn.addEventListener('click', async () => {
             if(confirm("ログアウトしますか？")) {
-                // ボタンを連打できないようにし、見た目を変える
-                logoutBtn.innerText = "PROCESSING...";
-                logoutBtn.style.opacity = "0.5";
-                logoutBtn.style.pointerEvents = "none";
-
-                try {
-                    // Firebaseにログアウト命令を送る（完了を待つ）
-                    await signOut(auth);
-                    // ※ここで何もしなくても、上の onAuthStateChanged が
-                    // ログアウトを検知して自動で index.html に飛ばしてくれます
-                } catch (error) {
-                    console.error("Logout Error:", error);
-                    alert("ログアウトに失敗しました");
-                    // エラーならボタンを元に戻す
-                    logoutBtn.innerText = "LOGOUT";
-                    logoutBtn.style.opacity = "1";
-                    logoutBtn.style.pointerEvents = "auto";
-                }
+                await signOut(auth);
+                alert("ログアウトしました。");
+                // 手動で移動
+                window.location.href = "index.html";
             }
         });
     </script>
