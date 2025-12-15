@@ -32,3 +32,8 @@ window.addEventListener('load', () => {
 
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 });
+/* 既存の #opening の設定があるなら、そこに書き足してもOKです */
+#opening {
+    /* これを追加すると、クリックやタップがこの要素を「すり抜け」ます */
+    pointer-events: none; 
+}
