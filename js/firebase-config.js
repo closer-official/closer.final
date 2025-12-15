@@ -7,7 +7,7 @@ import {
     signOut, 
     updateProfile,
     GoogleAuthProvider, 
-    signInWithPopup // ★重要：これを確実にインポート
+    signInWithPopup 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import { 
@@ -19,6 +19,7 @@ import {
     collection, 
     query, 
     orderBy, 
+    where, // ★ここに追加しました！
     getDocs, 
     updateDoc, 
     increment 
@@ -51,9 +52,10 @@ export {
     collection, 
     query, 
     orderBy, 
+    where, // ★ここにも追加しました！
     getDocs, 
     updateDoc, 
     increment,
     GoogleAuthProvider, 
-    signInWithPopup // ★重要：これをエクスポート
+    signInWithPopup
 };
