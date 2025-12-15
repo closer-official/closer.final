@@ -1,13 +1,23 @@
 // js/firebase-config.js
-// ここには「設定」と「道具の準備」だけを書きます
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// あなたのFirebase設定
+// ★ここを修正：必要な機能をすべて追加しました
+import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    serverTimestamp, 
+    collection, 
+    query, 
+    orderBy, 
+    getDocs, 
+    updateDoc, 
+    increment 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
   authDomain: "closer-official.firebaseapp.com",
@@ -18,10 +28,27 @@ const firebaseConfig = {
   measurementId: "G-LYK0THB2Z2"
 };
 
-// 初期化
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 他のファイルで使う道具を輸出（エクスポート）する
-export { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, doc, setDoc, getDoc, serverTimestamp };
+// ★ここも修正：輸出すべき道具をすべて並べました
+export { 
+    auth, 
+    db, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut, 
+    updateProfile, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    serverTimestamp,
+    collection, // 追加
+    query,      // 追加
+    orderBy,    // 追加
+    getDocs,    // 追加
+    updateDoc,  // 追加
+    increment   // 追加
+};
