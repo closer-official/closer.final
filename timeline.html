@@ -6,117 +6,239 @@
     <title>CLOSER | Timeline</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        /* タブのスタイル */
-        .tabs {
-            display: flex;
-            justify-content: center;
-            border-bottom: 1px solid #333;
-            margin-bottom: 30px;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { gold: '#C5A059', dark: '#111111' }, fontFamily: { cinzel: ['Cinzel', 'serif'], noto: ['Noto Serif JP', 'serif'] } }
+            }
         }
-        .tab-item {
-            padding: 15px 20px;
-            cursor: pointer;
-            color: #666;
-            font-family: 'Cinzel', serif;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-        .tab-item.active {
-            color: var(--gold-color);
-            border-bottom: 2px solid var(--gold-color);
-        }
-        
-        /* ユーザーアイコンのスタイル */
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 1px solid var(--gold-color);
-            object-fit: cover;
-            cursor: pointer;
-        }
-    </style>
+    </script>
 </head>
-<body>
-    <header>
-        <div class="logo gold-text" onclick="location.reload()" style="cursor:pointer;">CLOSER</div>
-        
+<body class="bg-black text-white pb-20">
+    <header class="fixed top-0 w-full bg-black/90 backdrop-blur border-b border-gray-800 z-50 p-4 flex justify-between items-center">
+        <div class="text-xl font-cinzel text-gold tracking-widest cursor-pointer" onclick="location.reload()">TIMELINE</div>
         <div style="display:flex; gap:15px; align-items:center;">
-            <a href="post.html" class="alpha-btn" style="background:var(--gold-color); color:#000; font-weight:bold; border:none;">RECORD</a>
-            
+            <a href="post.html" class="border border-gold text-gold px-3 py-1 text-xs font-cinzel font-bold hover:bg-gold hover:text-black transition">RECORD</a>
             <a href="profile.html">
-                <img id="header-avatar" src="" alt="User" class="user-avatar" style="display:none;">
+                <div class="w-8 h-8 rounded-full border border-gold bg-gray-900 flex items-center justify-center overflow-hidden">
+                    <img id="header-avatar" src="" class="w-full h-full object-cover hidden">
+                </div>
             </a>
         </div>
     </header>
 
-    <div class="container" style="padding-top: 80px; padding-bottom: 50px;">
-        
-        <div class="tabs">
-            <div class="tab-item active" onclick="switchTab('main')">MAIN</div>
-            <div class="tab-item" onclick="switchTab('elite')">ELITE</div>
-            <div class="tab-item" onclick="switchTab('spirit')">SPIRIT</div>
+    <div class="container mx-auto px-4 pt-24 pb-10 max-w-2xl">
+        <div class="relative flex justify-center items-end border-b border-gray-800 mb-8">
+            <div class="flex font-cinzel text-sm">
+                <div class="px-4 py-3 cursor-pointer text-gold border-b-2 border-gold tab-item" onclick="switchTab('main', this)">MAIN</div>
+                <div class="px-4 py-3 cursor-pointer text-gray-500 hover:text-gold transition tab-item" onclick="switchTab('elite', this)">ELITE</div>
+                <div class="px-4 py-3 cursor-pointer text-gray-500 hover:text-gold transition tab-item" onclick="switchTab('spirit', this)">SPIRIT</div>
+            </div>
+            
+            <div class="absolute right-0 bottom-0 px-2 py-3 cursor-pointer text-gray-500 hover:text-gold transition" id="open-search-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
         </div>
 
-        <div id="posts-container">
-            <p style="color:#666; margin-top:50px;">LOADING...</p>
+        <div id="active-filters" class="hidden mb-6 flex flex-wrap gap-2 justify-center">
+            <span class="text-xs text-gray-500 font-cinzel self-center mr-2">FILTERS:</span>
+            <button id="clear-filters" class="text-xs border border-red-900 text-red-500 px-2 py-1 hover:bg-red-900 transition">CLEAR ALL</button>
+        </div>
+
+        <div id="posts-container" class="space-y-6">
+            <p class="text-center text-gray-600 mt-10">LOADING...</p>
+        </div>
+    </div>
+
+    <div id="search-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-dark border border-gray-700 w-full max-w-md p-6 rounded relative">
+            <button id="close-search-modal" class="absolute top-4 right-4 text-gray-500 hover:text-white text-2xl"> ✕ </button>
+            <h3 class="text-gold font-cinzel mb-6 text-center text-xl border-b border-gray-800 pb-4">SEARCH FILTER</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gold mb-1 font-cinzel">PHASE</label>
+                    <select id="s-situation" class="w-full bg-black border border-gray-700 text-white text-sm p-2 focus:border-gold outline-none">
+                        <option value="">ALL</option>
+                        <option value="Approach">1. アプローチ</option>
+                        <option value="Hearing">2. ヒアリング</option>
+                        <option value="Presentation">3. プレゼンテーション</option>
+                        <option value="Objection">4. オブジェクション</option>
+                        <option value="Closing">5. クロージング</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gold mb-1 font-cinzel">TARGET</label>
+                    <select id="s-target" class="w-full bg-black border border-gray-700 text-white text-sm p-2 focus:border-gold outline-none">
+                        <option value="">ALL</option>
+                        <option value="Economic Buyer">決裁者</option>
+                        <option value="Champion">選定者・推進者</option>
+                        <option value="End User">実務担当者</option>
+                        <option value="Gatekeeper">ゲートキーパー</option>
+                        <option value="Technical Buyer">専門家</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gold mb-1 font-cinzel">PRICE</label>
+                    <select id="s-price" class="w-full bg-black border border-gray-700 text-white text-sm p-2 focus:border-gold outline-none">
+                        <option value="">ALL</option>
+                        <option value="~100k">〜10万円未満</option>
+                        <option value="100k-500k">10万円 〜 50万円</option>
+                        <option value="500k-1m">50万円 〜 100万円</option>
+                        <option value="1m-3m">100万円 〜 300万円</option>
+                        <option value="3m-10m">300万円 〜 1,000万円</option>
+                        <option value="10m~">1,000万円以上</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gold mb-1 font-cinzel">INDUSTRY</label>
+                    <select id="s-industry" class="w-full bg-black border border-gray-700 text-white text-sm p-2 focus:border-gold outline-none">
+                        <option value="">ALL</option>
+                        <option value="IT/Web">1. IT・通信・Web</option>
+                        <option value="Energy">2. 環境・エネルギー</option>
+                        <option value="RealEstate">3. 不動産・建設</option>
+                        <option value="Finance">4. 金融・保険</option>
+                        <option value="HR">5. 人材・教育・HR</option>
+                        <option value="Ad/Marketing">6. 広告・出版</option>
+                        <option value="Manufacturing">7. 自動車・製造</option>
+                        <option value="Consulting">8. コンサル・専門職</option>
+                        <option value="Retail">9. 小売・生活関連</option>
+                        <option value="Other">10. その他</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="exec-search-btn" class="w-full bg-gold text-black font-cinzel py-3 font-bold hover:bg-yellow-600 transition mt-8">SEARCH</button>
         </div>
     </div>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, collection, query, orderBy, where, getDocs, doc, updateDoc, increment } 
-        from "./js/firebase-config.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, where, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        let currentCategory = 'main'; // 現在のタブ
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
+            authDomain: "closer-official.firebaseapp.com",
+            projectId: "closer-official",
+            storageBucket: "closer-official.firebasestorage.app",
+            messagingSenderId: "1039215613610",
+            appId: "1:1039215613610:web:540ef7a026714e28dbe2d3",
+            measurementId: "G-LYK0THB2Z2"
+        };
 
-        // 1. ログインチェック & 初期読み込み
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                window.location.href = "index.html";
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let currentCategory = 'main';
+        let currentFilters = {};
+
+        const searchModal = document.getElementById('search-modal');
+        const openSearchBtn = document.getElementById('open-search-btn');
+        const closeSearchBtn = document.getElementById('close-search-modal');
+        const execSearchBtn = document.getElementById('exec-search-btn');
+        const activeFiltersArea = document.getElementById('active-filters');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+
+        openSearchBtn.addEventListener('click', () => searchModal.classList.remove('hidden'));
+        closeSearchBtn.addEventListener('click', () => searchModal.classList.add('hidden'));
+        
+        execSearchBtn.addEventListener('click', () => {
+            currentFilters = {
+                situation: document.getElementById('s-situation').value,
+                target: document.getElementById('s-target').value,
+                price: document.getElementById('s-price').value,
+                industry: document.getElementById('s-industry').value
+            };
+            updateFilterUI();
+            loadPosts(currentCategory);
+            searchModal.classList.add('hidden');
+        });
+
+        clearFiltersBtn.addEventListener('click', () => {
+            document.getElementById('s-situation').value = "";
+            document.getElementById('s-target').value = "";
+            document.getElementById('s-price').value = "";
+            document.getElementById('s-industry').value = "";
+            currentFilters = {};
+            updateFilterUI();
+            loadPosts(currentCategory);
+        });
+
+        function updateFilterUI() {
+            const keys = Object.keys(currentFilters);
+            const activeKeys = keys.filter(k => currentFilters[k]);
+            
+            Array.from(activeFiltersArea.children).forEach(child => {
+                if(child.id !== 'clear-filters' && !child.classList.contains('text-xs')) {
+                    child.remove();
+                }
+            });
+
+            if (activeKeys.length > 0) {
+                activeFiltersArea.classList.remove('hidden');
+                activeKeys.forEach(key => {
+                    const val = currentFilters[key];
+                    const badge = document.createElement('span');
+                    badge.className = "text-[10px] border border-gold text-gold px-2 py-1 font-cinzel";
+                    badge.innerText = val;
+                    activeFiltersArea.insertBefore(badge, clearFiltersBtn);
+                });
             } else {
-                // アイコン表示
-                const avatar = document.getElementById('header-avatar');
-                avatar.src = user.photoURL || "https://via.placeholder.com/40?text=U";
-                avatar.style.display = 'block';
+                activeFiltersArea.classList.add('hidden');
+            }
+        }
 
-                // 投稿読み込み
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const avatar = document.getElementById('header-avatar');
+                if(avatar) {
+                    avatar.src = user.photoURL || "https://via.placeholder.com/40?text=U";
+                    avatar.classList.remove('hidden');
+                }
                 loadPosts(currentCategory);
+            } else {
+                window.location.href = "index.html";
             }
         });
 
-        // 2. タブ切り替え機能
-        window.switchTab = (category) => {
+        window.switchTab = (category, el) => {
             currentCategory = category;
-            
-            // タブの見た目を変える
-            document.querySelectorAll('.tab-item').forEach(el => {
-                el.classList.remove('active');
-                if(el.innerText.toLowerCase() === category) el.classList.add('active');
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('text-gold', 'border-b-2', 'border-gold');
+                item.classList.add('text-gray-500');
             });
-
+            el.classList.remove('text-gray-500');
+            el.classList.add('text-gold', 'border-b-2', 'border-gold');
             loadPosts(category);
         }
 
-        // 3. 投稿データ取得 (カテゴリでフィルタリング)
         async function loadPosts(category) {
             const container = document.getElementById('posts-container');
-            container.innerHTML = "<p style='color:#666; margin-top:50px;'>LOADING...</p>";
+            container.innerHTML = "<p class='text-center text-gray-600 mt-10'>LOADING...</p>";
 
             try {
-                // クエリ作成: カテゴリが一致し、新しい順
-                // 注意: 初回実行時にコンソールに「インデックスを作れ」というエラーリンクが出ます。それをクリックしてください。
-                const q = query(
-                    collection(db, "posts"), 
-                    where("category", "==", category), 
-                    orderBy("createdAt", "desc")
+                let q = query(
+                    collection(db, "posts"),
+                    where("category", "==", category)
                 );
+
+                if (currentFilters.situation) q = query(q, where("situation", "==", currentFilters.situation));
+                if (currentFilters.target) q = query(q, where("target", "==", currentFilters.target));
+                if (currentFilters.price) q = query(q, where("price", "==", currentFilters.price));
+                if (currentFilters.industry) q = query(q, where("industry", "==", currentFilters.industry));
+
+                q = query(q, orderBy("createdAt", "desc"));
                 
                 const querySnapshot = await getDocs(q);
-
                 container.innerHTML = "";
+                
                 if (querySnapshot.empty) {
-                    container.innerHTML = "<p style='margin-top:50px; color:#888;'>まだ投稿がありません。</p>";
+                    container.innerHTML = "<p class='text-center text-gray-600 mt-10'>NO POSTS FOUND</p>";
                     return;
                 }
 
@@ -126,61 +248,83 @@
                 });
             } catch (error) {
                 console.error("Error:", error);
-                // インデックス未作成エラーの場合の案内
-                if(error.message.includes("requires an index")) {
-                    container.innerHTML = "<p style='color:red;'>【開発者用】Firebaseコンソールでインデックスを作成してください。<br>F12キーのコンソールにあるリンクをクリック！</p>";
+                if (error.message.includes("requires an index")) {
+                    container.innerHTML = "<p class='text-center text-red-500 mt-10 text-xs'>【開発者用】<br>複合クエリのインデックスが必要です。<br>ブラウザのコンソール(F12)を開き、<br>表示されたURLをクリックして作成してください。</p>";
                 } else {
-                    container.innerHTML = "<p style='color:red;'>読み込みエラー</p>";
+                    container.innerHTML = "<p class='text-center text-red-500 mt-10'>LOAD ERROR</p>";
                 }
             }
         }
 
-        // 4. カード生成 (デザインは以前と同じ)
         function createPostCard(post, docId) {
             const div = document.createElement('div');
-            div.className = 'rank-card'; 
-            div.style.textAlign = 'left';
-            div.style.marginBottom = '30px';
-
+            div.className = 'bg-dark border border-gray-800 p-5 rounded-sm cursor-pointer hover:border-gray-700 transition relative group';
+            div.onclick = (e) => {
+                if(e.target.closest('.vote-btn')) return;
+                window.location.href = `detail.html?id=${docId}`;
+            };
+            
             let dateStr = "Just now";
-            if (post.createdAt) dateStr = post.createdAt.toDate().toLocaleDateString('ja-JP');
+            if (post.createdAt && typeof post.createdAt.toDate === 'function') {
+                dateStr = post.createdAt.toDate().toLocaleDateString('ja-JP');
+            }
+            
+            const authorImg = post.authorPhoto || "https://via.placeholder.com/40?text=U";
+            const authorName = post.authorName || "Unknown";
 
-            // アイコンがあれば表示
-            const authorImg = post.authorPhoto ? `<img src="${post.authorPhoto}" style="width:20px; height:20px; border-radius:50%; vertical-align:middle; margin-right:5px;">` : "";
-
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="color:#888; font-size:0.8rem;">
-                        ${authorImg}
-                        AUTHOR: <span class="gold-text">${post.authorName || "Unknown"}</span>
-                    </span>
-                    <span style="color:#666; font-size:0.8rem;">${dateStr}</span>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <div style="font-size:0.7rem; color:#C5A059; letter-spacing:0.1em;">SITUATION</div>
-                    <div style="color:#ddd; font-size:0.9rem;">${escapeHtml(post.situation)}</div>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <div style="font-size:0.7rem; color:#C5A059; letter-spacing:0.1em;">PROBLEM</div>
-                    <div style="color:#ddd; font-size:0.9rem;">${escapeHtml(post.problem)}</div>
-                </div>
-
-                <div style="background:rgba(0,0,0,0.3); padding:15px; border-left:2px solid #C5A059; margin-bottom:20px;">
-                    <div style="font-size:0.7rem; color:#C5A059; letter-spacing:0.1em; margin-bottom:5px;">SOLUTION</div>
-                    <div style="color:#fff; font-size:1rem; font-family:'Noto Serif JP', serif;">${escapeHtml(post.solution)}</div>
-                </div>
-
-                <div style="text-align:right;">
-                    <button class="vote-btn alpha-btn" data-id="${docId}" style="background:transparent;">
-                        VOTE <span style="font-size:1.2em;">★</span> <span class="like-count">${post.likes || 0}</span>
-                    </button>
+            let html = `
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <img src="${authorImg}" class="w-8 h-8 rounded-full border border-gray-700 object-cover">
+                        <div>
+                            <div class="font-cinzel text-gold text-xs tracking-wider">${escapeHtml(authorName)}</div>
+                            <div class="text-[10px] text-gray-500">${dateStr}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <button class="vote-btn border border-gray-700 text-gray-500 hover:text-gold hover:border-gold px-3 py-1 text-xs font-cinzel transition z-10 relative" id="btn-${docId}">
+                            VOTE ★ <span class="like-count">${post.likes || 0}</span>
+                        </button>
+                    </div>
                 </div>
             `;
 
-            const btn = div.querySelector('.vote-btn');
-            btn.addEventListener('click', async () => await votePost(docId, btn));
+            if (post.category === 'spirit') {
+                html += `
+                    <div class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed line-clamp-3">${escapeHtml(post.solution)}</div>
+                `;
+            } else {
+                html += `<div class="flex flex-wrap gap-2 mb-3">`;
+                const tags = [post.situation, post.target, post.price, post.industry];
+                tags.forEach(tag => {
+                    if(tag) html += `<span class="text-[10px] border border-gray-600 text-gray-400 px-2 py-1 rounded font-cinzel">${escapeHtml(tag)}</span>`;
+                });
+                html += `</div>`;
+
+                html += `
+                    <div class="mb-2">
+                        <div class="text-[10px] text-gold font-cinzel mb-1">PROBLEM</div>
+                        <div class="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap line-clamp-3">${escapeHtml(post.problem)}</div>
+                    </div>
+                `;
+                
+                html += `
+                    <div class="text-center mt-4">
+                        <span class="text-[10px] text-gray-600 group-hover:text-gold transition">▼ CLICK TO READ SOLUTION</span>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = html;
+
+            const btn = div.querySelector(`#btn-${docId}`);
+            if(btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    votePost(docId, btn);
+                };
+            }
+
             return div;
         }
 
@@ -191,9 +335,9 @@
                 const postRef = doc(db, "posts", docId);
                 await updateDoc(postRef, { likes: increment(1) });
                 const countSpan = btn.querySelector('.like-count');
-                countSpan.innerText = parseInt(countSpan.innerText) + 1;
-                btn.style.borderColor = "#fff";
-                btn.style.color = "#fff";
+                if(countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1;
+                btn.classList.remove('text-gray-500', 'border-gray-700');
+                btn.classList.add('text-gold', 'border-gold');
             } catch (error) {
                 console.error("Vote Error:", error);
                 btn.disabled = false;

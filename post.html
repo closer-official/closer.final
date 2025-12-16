@@ -6,6 +6,17 @@
     <title>CLOSER | New Post</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { gold: '#C5A059', dark: '#111111', darker: '#0a0a0a' },
+                    fontFamily: { cinzel: ['Cinzel', 'serif'], noto: ['Noto Serif JP', 'serif'] },
+                }
+            }
+        }
+    </script>
 </head>
 <body>
     <header>
@@ -26,72 +37,236 @@
                 </select>
             </div>
 
-            <div class="input-group" style="max-width: 100%;">
-                <label>SITUATION (場面・相手)</label>
-                <input type="text" id="p-situation" class="input-field" placeholder="誰に対する、どんな商談か？" required>
+            <div id="logic-section">
+                <div class="input-group" style="max-width: 100%;">
+                    <label>PHASE (商談フェーズ)</label>
+                    <select id="p-situation" class="input-field" style="height: 50px;">
+                        <option value="Approach">1. アプローチ (信頼構築)</option>
+                        <option value="Hearing">2. ヒアリング (課題発見)</option>
+                        <option value="Presentation">3. プレゼンテーション (提案)</option>
+                        <option value="Objection">4. オブジェクション (反論処理)</option>
+                        <option value="Closing">5. クロージング (契約締結)</option>
+                    </select>
+                    <div class="text-right mt-2">
+                        <span id="open-term-modal" class="text-xs text-gray-500 cursor-pointer border-b border-gray-600 hover:text-gold hover:border-gold transition">
+                            ※ 場面の呼称について
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div class="text-left">
+                        <label class="block text-gold text-xs mb-1">TARGET (相手)</label>
+                        <select id="p-target" class="input-field text-sm" style="height: 45px; padding: 0 10px;">
+                            <option value="Economic Buyer">決裁者 (社長・本部長)</option>
+                            <option value="Champion">選定者・推進者 (課長)</option>
+                            <option value="End User">実務担当者 (現場)</option>
+                            <option value="Gatekeeper">ゲートキーパー (受付)</option>
+                            <option value="Technical Buyer">専門家 (法務・システム)</option>
+                        </select>
+                    </div>
+
+                    <div class="text-left">
+                        <label class="block text-gold text-xs mb-1">PRICE (単価)</label>
+                        <select id="p-price" class="input-field text-sm" style="height: 45px; padding: 0 10px;">
+                            <option value="~100k">〜10万円未満</option>
+                            <option value="100k-500k">10万円 〜 50万円</option>
+                            <option value="500k-1m">50万円 〜 100万円</option>
+                            <option value="1m-3m">100万円 〜 300万円</option>
+                            <option value="3m-10m">300万円 〜 1,000万円</option>
+                            <option value="10m~">1,000万円以上</option>
+                        </select>
+                    </div>
+
+                    <div class="text-left">
+                        <label class="block text-gold text-xs mb-1">INDUSTRY (業界)</label>
+                        <select id="p-industry" class="input-field text-sm" style="height: 45px; padding: 0 10px;">
+                            <option value="IT/Web">1. IT・通信・Web</option>
+                            <option value="Energy">2. 環境・エネルギー</option>
+                            <option value="RealEstate">3. 不動産・建設</option>
+                            <option value="Finance">4. 金融・保険</option>
+                            <option value="HR">5. 人材・教育・HR</option>
+                            <option value="Ad/Marketing">6. 広告・出版</option>
+                            <option value="Manufacturing">7. 自動車・製造</option>
+                            <option value="Consulting">8. コンサル・専門職</option>
+                            <option value="Retail">9. 小売・生活関連</option>
+                            <option value="Other">10. その他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group" style="max-width: 100%; margin-top: 30px;">
+                    <label>PROBLEM (課題・痛み)</label>
+                    <textarea id="p-problem" class="input-field" rows="3" placeholder="顧客が抱える潜在的な痛みは？"></textarea>
+                </div>
             </div>
 
             <div class="input-group" style="max-width: 100%; margin-top: 20px;">
-                <label>PROBLEM (課題・痛み)</label>
-                <textarea id="p-problem" class="input-field" rows="3" placeholder="顧客が抱える潜在的な痛みは？" required></textarea>
+                <label id="label-solution" class="gold-text">SOLUTION (トークスクリプト)</label>
+                <textarea id="p-solution" class="input-field" rows="6" placeholder="内容を入力してください..." required></textarea>
             </div>
 
-            <div class="input-group" style="max-width: 100%; margin-top: 20px;">
-                <label class="gold-text">SOLUTION (トークスクリプト)</label>
-                <textarea id="p-solution" class="input-field" rows="6" placeholder="「社長、実はそのコストですが...」" required></textarea>
+            <div id="explanation-section" class="input-group" style="max-width: 100%; margin-top: 20px;">
+                <label class="gold-text" style="font-size: 0.9rem;">EXPLANATION (解説・ポイント)</label>
+                <p style="color:#666; font-size:0.7rem; margin-bottom:5px;">なぜこのトークが有効なのか？ 心理背景や意図を解説してください。</p>
+                <textarea id="p-explanation" class="input-field" rows="4" placeholder="（例）ここで敢えて沈黙することで、相手に考えさせる..." required></textarea>
             </div>
 
             <button type="submit" class="btn btn-full btn-fill" style="margin-top: 40px;">投稿を保存する</button>
         </form>
     </div>
 
-    <script type="module">
-        import { auth, db, doc, setDoc, serverTimestamp, onAuthStateChanged } 
-        from "./js/firebase-config.js";
+    <div id="term-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-dark border border-gray-700 w-full max-w-2xl p-6 rounded relative max-h-[80vh] overflow-y-auto no-scrollbar">
+            <button id="close-term-modal" class="absolute top-4 right-4 text-gray-500 hover:text-white text-2xl"> ✕ </button>
+            <h3 class="text-gold font-cinzel mb-6 text-center text-xl border-b border-gray-800 pb-4">PHASE DEFINITIONS</h3>
+            <div class="space-y-6 text-left font-noto">
+                <div><h4 class="text-gold font-bold mb-2">1. アプローチ</h4><p class="text-gray-300 text-sm">挨拶、名刺交換、ラポール形成。</p></div>
+                <div><h4 class="text-gold font-bold mb-2">2. ヒアリング</h4><p class="text-gray-300 text-sm">現状把握、課題発見。</p></div>
+                <div><h4 class="text-gold font-bold mb-2">3. プレゼンテーション</h4><p class="text-gray-300 text-sm">解決策の提案、メリット提示。</p></div>
+                <div><h4 class="text-gold font-bold mb-2">4. オブジェクション</h4><p class="text-gray-300 text-sm">反論処理、懸念払拭。</p></div>
+                <div><h4 class="text-gold font-bold mb-2">5. クロージング</h4><p class="text-gray-300 text-sm">契約締結、意思決定。</p></div>
+            </div>
+            <div class="mt-8 text-center">
+                <button id="close-term-btn" class="border border-gold text-gold px-6 py-2 text-sm font-cinzel hover:bg-gold hover:text-black transition">CLOSE</button>
+            </div>
+        </div>
+    </div>
 
-        onAuthStateChanged(auth, (user) => {
-            if (!user) window.location.href = "index.html";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
+            authDomain: "closer-official.firebaseapp.com",
+            projectId: "closer-official",
+            storageBucket: "closer-official.firebasestorage.app",
+            messagingSenderId: "1039215613610",
+            appId: "1:1039215613610:web:540ef7a026714e28dbe2d3",
+            measurementId: "G-LYK0THB2Z2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI要素
+        const categorySelect = document.getElementById('p-category');
+        const logicSection = document.getElementById('logic-section');
+        const explanationSection = document.getElementById('explanation-section'); // 追加
+        
+        const sitInput = document.getElementById('p-situation');
+        const targetInput = document.getElementById('p-target');
+        const priceInput = document.getElementById('p-price');
+        const industryInput = document.getElementById('p-industry');
+        const probInput = document.getElementById('p-problem');
+        
+        const solLabel = document.getElementById('label-solution');
+        const solInput = document.getElementById('p-solution');
+        const explInput = document.getElementById('p-explanation'); // 追加
+
+        // モーダル要素
+        const termModal = document.getElementById('term-modal');
+        const openTermBtn = document.getElementById('open-term-modal');
+        const closeTermX = document.getElementById('close-term-modal');
+        const closeTermBtn = document.getElementById('close-term-btn');
+
+        // カテゴリ切り替え時の表示制御
+        categorySelect.addEventListener('change', (e) => {
+            if(e.target.value === 'spirit') {
+                // SPIRIT選択時: 詳細項目と解説を隠す
+                logicSection.style.display = 'none';
+                explanationSection.style.display = 'none'; // 解説も隠す
+                
+                sitInput.required = false;
+                probInput.required = false;
+                explInput.required = false; // 必須解除
+
+                solLabel.innerText = "FREE TEXT (自由記述)";
+                solInput.placeholder = "想いやマインドセットを自由に記述してください...";
+            } else {
+                // その他: 詳細項目と解説を表示
+                logicSection.style.display = 'block';
+                explanationSection.style.display = 'block'; // 解説表示
+
+                sitInput.required = true;
+                probInput.required = true;
+                explInput.required = true; // 必須化
+
+                solLabel.innerText = "SOLUTION (トークスクリプト)";
+                solInput.placeholder = "「社長、実はそのコストですが...」";
+            }
         });
 
+        // 初期ロード時にもイベント発火
+        categorySelect.dispatchEvent(new Event('change'));
+
+        // モーダル開閉
+        const openModal = () => termModal.classList.remove('hidden');
+        const closeModal = () => termModal.classList.add('hidden');
+        openTermBtn.addEventListener('click', openModal);
+        closeTermX.addEventListener('click', closeModal);
+        closeTermBtn.addEventListener('click', closeModal);
+        termModal.addEventListener('click', (e) => { if(e.target === termModal) closeModal(); });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) console.log("Authorized: " + user.uid);
+            else window.location.href = "index.html";
+        });
+
+        // 投稿保存処理
         const form = document.getElementById('post-form');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const btn = document.querySelector('button');
+            const btn = document.querySelector('button[type="submit"]');
             const user = auth.currentUser;
-            if(!user) return;
+            if(!user) {
+                alert("ログインセッションが切れました。");
+                window.location.href = "index.html";
+                return;
+            }
 
-            // 入力値を取得
-            const category = document.getElementById('p-category').value; // ★追加
-            const situation = document.getElementById('p-situation').value;
-            const problem = document.getElementById('p-problem').value;
-            const solution = document.getElementById('p-solution').value;
+            const category = categorySelect.value;
+            // SPIRITの場合、不要なフィールドは空文字にする
+            const isSpirit = (category === 'spirit');
+            
+            const situation = isSpirit ? "" : sitInput.value;
+            const target = isSpirit ? "" : targetInput.value;
+            const price = isSpirit ? "" : priceInput.value;
+            const industry = isSpirit ? "" : industryInput.value;
+            const problem = isSpirit ? "" : probInput.value;
+            const explanation = isSpirit ? "" : explInput.value; // 解説も保存
+            const solution = solInput.value;
 
             try {
                 btn.innerText = "SAVING...";
                 btn.disabled = true;
-
                 const postId = "post_" + Date.now();
 
                 await setDoc(doc(db, "posts", postId), {
                     postId: postId,
                     authorId: user.uid,
-                    authorName: user.displayName,
-                    authorPhoto: user.photoURL, // ★追加：アイコン表示用
-                    category: category,         // ★追加：タブ分け用
+                    authorName: user.displayName || "No Name",
+                    authorPhoto: user.photoURL,
+                    category: category,
                     situation: situation,
+                    target: target,
+                    price: price,
+                    industry: industry,
                     problem: problem,
                     solution: solution,
+                    explanation: explanation, // 解説を追加
                     likes: 0,
                     createdAt: serverTimestamp()
                 });
-
                 window.location.href = "timeline.html"; 
-
             } catch (error) {
                 console.error("Error:", error);
                 alert("保存失敗: " + error.message);
                 btn.disabled = false;
+                btn.innerText = "投稿を保存する";
             }
         });
     </script>

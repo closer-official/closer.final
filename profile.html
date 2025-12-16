@@ -5,217 +5,182 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLOSER | Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { gold: '#C5A059', dark: '#111111', darker: '#0a0a0a' },
+                    fontFamily: { cinzel: ['Cinzel', 'serif'], noto: ['Noto Serif JP', 'serif'] },
+                }
+            }
+        }
+    </script>
     <style>
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .stat-box {
-            background: #111;
-            border: 1px solid #333;
-            padding: 15px;
-            text-align: center;
-        }
-        .stat-label {
-            font-size: 0.7rem;
-            color: #888;
-            margin-bottom: 5px;
-            font-family: 'Cinzel', serif;
-        }
-        .stat-value {
-            font-size: 1.2rem;
-            color: var(--text-color);
-            font-family: 'Cinzel', serif;
-        }
-        .menu-list {
-            text-align: left;
-            margin-bottom: 30px;
-        }
-        .menu-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #222;
-            color: #ddd;
-            text-decoration: none;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-        .menu-item:hover { color: var(--gold-color); }
-        .footer-links {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-            font-size: 0.7rem;
-        }
-        .footer-links a { color: #666; text-decoration: none; }
+        body { background-color: #000; color: #fff; font-family: 'Noto Serif JP', serif; }
+        .menu-item { border-bottom: 1px solid #222; }
+        .menu-item:hover { color: #C5A059; }
     </style>
 </head>
-<body>
-    <header>
-        <div class="logo gold-text">PROFILE</div>
-        <a href="timeline.html" class="alpha-btn">BACK</a>
-    </header>
+<body class="bg-black">
+    <div class="min-h-screen flex flex-col">
+        <header class="fixed top-0 left-0 right-0 bg-black bg-opacity-90 backdrop-blur-sm z-50 flex justify-between items-center p-4 border-b border-gray-800">
+            <div class="text-xl font-cinzel text-gold">PROFILE</div>
+            <a href="timeline.html" class="text-sm border border-gray-600 px-3 py-1 hover:border-gold hover:text-gold transition">BACK</a>
+        </header>
 
-    <div class="container" style="padding-top: 80px; text-align: center;">
-        
-        <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 15px;">
-            <img id="profile-img" src="" style="width: 100%; height: 100%; border-radius: 50%; border: 2px solid #C5A059; object-fit: cover;">
-            <label for="file-input" style="position: absolute; bottom: 0; right: 0; background: #C5A059; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 1rem; color: #000;">📷</span>
-            </label>
-            <input type="file" id="file-input" accept="image/*" style="display: none;">
-        </div>
+        <main class="flex-1 pt-24 px-6 pb-12 text-center">
+            <div class="relative w-28 h-28 mx-auto mb-6 group">
+                <img id="profile-img" src="https://via.placeholder.com/150/111111/C5A059?text=USER" alt="Profile" class="w-full h-full rounded-full border-2 border-gold object-cover">
+                
+                <label for="file-input" class="absolute bottom-0 right-0 bg-gold w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:bg-yellow-600 transition shadow-lg">
+                    <span class="text-black text-sm">📷</span>
+                </label>
+                <input type="file" id="file-input" accept="image/*" class="hidden">
+                
+                <div id="upload-loading" class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center hidden">
+                    <div class="animate-spin h-6 w-6 border-2 border-gold rounded-full border-t-transparent"></div>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <h2 id="profile-name" class="text-xl font-cinzel text-gold">LOADING...</h2>
+                <span id="role-badge" class="text-[10px] px-2 py-0.5 border border-gray-500 rounded font-cinzel tracking-wider text-gray-400">
+                    -
+                </span>
+            </div>
+            
+            <p id="profile-uid" class="text-gray-500 text-xs mb-8 font-mono">UID: ...</p>
 
-        <button id="upload-btn" class="alpha-btn" style="display:none; margin: 0 auto 15px; font-size:0.7rem;">画像保存</button>
-        
-        <h2 id="profile-name" class="gold-text" style="margin-bottom: 5px;">LOADING...</h2>
-        <p id="profile-bio" style="color: #888; font-size: 0.8rem; margin-bottom: 20px; padding: 0 20px;">
-            ...
-        </p>
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-dark p-4 border border-gray-800">
+                    <div class="text-xs text-gray-500 font-cinzel mb-1">RANK</div>
+                    <div id="stat-rank" class="text-lg text-gold font-cinzel">-</div>
+                </div>
+                <div class="bg-dark p-4 border border-gray-800">
+                    <div class="text-xs text-gray-500 font-cinzel mb-1">SKILL SCORE</div>
+                    <div class="text-lg font-cinzel">0</div>
+                </div>
+            </div>
 
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-label">RANK</div>
-                <div id="stat-rank" class="stat-value gold-text">-</div>
+            <div class="text-left mb-8">
+                <div class="menu-item flex justify-between items-center py-4 cursor-pointer"><span>自己紹介文の編集</span><span>&gt;</span></div>
+                <div class="menu-item flex justify-between items-center py-4"><span>通知設定</span><span>ON</span></div>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">SKILL SCORE</div>
-                <div id="stat-score" class="stat-value">-</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">AMV</div>
-                <div id="stat-amv" class="stat-value">-</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">CC (COIN)</div>
-                <div id="stat-cc" class="stat-value">-</div>
-            </div>
-        </div>
 
-        <div style="background: #1a1a1a; padding: 15px; border: 1px solid #444; margin-bottom: 30px; border-radius: 5px;">
-            <div class="stat-label">REWARD BALANCE (JAY)</div>
-            <div id="stat-reward" class="stat-value" style="font-size: 1.5rem;">¥0</div>
-        </div>
-
-        <div class="menu-list">
-            <div class="menu-item" onclick="alert('自己紹介編集機能は準備中です')">
-                <span>自己紹介文の編集</span> <span>&gt;</span>
-            </div>
-            <div class="menu-item" onclick="alert('保存済み投稿はありません')">
-                <span>保存済み投稿 (SAVED)</span> <span>&gt;</span>
-            </div>
-            <div class="menu-item" onclick="alert('現在すべての投稿は公開設定です')">
-                <span>セキュリティ (鍵アカウント設定)</span> <span>OFF</span>
-            </div>
-            <div class="menu-item" onclick="alert('スカウト機能リリース後に設定可能です')">
-                <span>スカウト設定</span> <span>&gt;</span>
-            </div>
-            <div class="menu-item">
-                <span>通知設定</span> <span>ON</span>
-            </div>
-            <div class="menu-item" onclick="alert('現在加入中のサブスクリプションはありません')">
-                <span>サブスクリプション管理</span> <span>&gt;</span>
-            </div>
-        </div>
-
-        <div class="footer-links">
-            <a href="javascript:void(0)">利用規約</a>
-            <a href="javascript:void(0)">プライバシーポリシー</a>
-            <a href="javascript:void(0)">特定商取引法に基づく表記</a>
-            <a href="javascript:void(0)">よくある質問</a>
-            <a href="javascript:void(0)">返金窓口</a>
-        </div>
-
-        <button id="logout-btn" class="btn btn-full" style="border-color: #ff4444; color: #ff4444; margin-bottom: 50px;">
-            LOGOUT
-        </button>
-
+            <button id="logout-btn" class="w-full py-3 border border-red-600 text-red-600 font-cinzel hover:bg-red-600 hover:text-white transition mb-8">LOGOUT</button>
+        </main>
     </div>
 
     <script type="module">
-        import { 
-            auth, onAuthStateChanged, signOut, updateProfile, 
-            storage, ref, uploadBytes, getDownloadURL,
-            db, doc, getDoc, updateDoc 
-        } from "./js/firebase-config.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-        const els = {
-            img: document.getElementById('profile-img'),
-            name: document.getElementById('profile-name'),
-            bio: document.getElementById('profile-bio'),
-            rank: document.getElementById('stat-rank'),
-            score: document.getElementById('stat-score'),
-            amv: document.getElementById('stat-amv'),
-            cc: document.getElementById('stat-cc'),
-            reward: document.getElementById('stat-reward'),
-            fileInput: document.getElementById('file-input'),
-            uploadBtn: document.getElementById('upload-btn')
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
+            authDomain: "closer-official.firebaseapp.com",
+            projectId: "closer-official",
+            storageBucket: "closer-official.firebasestorage.app",
+            messagingSenderId: "1039215613610",
+            appId: "1:1039215613610:web:540ef7a026714e28dbe2d3",
+            measurementId: "G-LYK0THB2Z2"
         };
-        
-        let currentUser = null;
-        let selectedFile = null;
 
-        onAuthStateChanged(auth, async (user) => {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        const profileImg = document.getElementById('profile-img');
+        const profileName = document.getElementById('profile-name');
+        const profileUid = document.getElementById('profile-uid');
+        const roleBadge = document.getElementById('role-badge');
+        const statRank = document.getElementById('stat-rank');
+        const fileInput = document.getElementById('file-input');
+        const uploadLoading = document.getElementById('upload-loading');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        let currentUser = null;
+
+        // ★テスト用設定：ここで役割とランクを変更して確認できます
+        // ROLE: 'PLAYER', 'AUDITOR', 'OBSERVER'
+        // RANK: 'SS', 'S', 'A', 'B', 'C'
+        const TEST_USER_ROLE = 'PLAYER'; 
+        const TEST_USER_RANK = 'S';
+
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                els.img.src = user.photoURL || "https://via.placeholder.com/100?text=NO+IMG";
-                els.name.innerText = user.displayName;
-
-                // Firestoreから詳細データを取得
-                try {
-                    const docSnap = await getDoc(doc(db, "users", user.uid));
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        els.bio.innerText = data.bio || "自己紹介文はまだ設定されていません。";
-                        els.rank.innerText = (data.rank || "Standard").toUpperCase();
-                        els.score.innerText = data.score_skill || 0;
-                        els.amv.innerText = data.amv || 0;
-                        els.cc.innerText = data.cc || 0;
-                        els.reward.innerText = "¥" + (data.reward_bal || 0).toLocaleString();
-                    }
-                } catch (e) {
-                    console.error("Data Load Error:", e);
+                profileName.innerText = user.displayName || "NO NAME";
+                profileUid.innerText = `UID: ${user.uid}`;
+                if (user.photoURL) {
+                    profileImg.src = user.photoURL;
                 }
+
+                // ▼▼▼ 役割とランクの表示ロジック ▼▼▼
+                
+                // 1. 役割バッジの表示
+                roleBadge.innerText = TEST_USER_ROLE;
+                if(TEST_USER_ROLE === 'PLAYER') {
+                    roleBadge.className = "text-[10px] px-2 py-0.5 border border-gold text-gold rounded font-cinzel tracking-wider";
+                } else if(TEST_USER_ROLE === 'AUDITOR') {
+                    roleBadge.className = "text-[10px] px-2 py-0.5 border border-blue-400 text-blue-400 rounded font-cinzel tracking-wider";
+                } else {
+                    roleBadge.className = "text-[10px] px-2 py-0.5 border border-gray-500 text-gray-500 rounded font-cinzel tracking-wider";
+                }
+
+                // 2. ランクの表示（OBSERVERは表示なし）
+                if (TEST_USER_ROLE === 'OBSERVER') {
+                    statRank.innerText = "-";
+                    statRank.classList.remove('text-gold');
+                    statRank.classList.add('text-gray-500');
+                } else {
+                    statRank.innerText = TEST_USER_RANK;
+                    statRank.classList.add('text-gold');
+                }
+
             } else {
                 window.location.href = "index.html";
             }
         });
 
         // 画像アップロード処理
-        els.fileInput.addEventListener('change', (e) => {
+        fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (file) {
-                selectedFile = file;
-                els.img.src = URL.createObjectURL(file);
-                els.uploadBtn.style.display = 'block';
-            }
-        });
+            if (!file || !currentUser) return;
 
-        els.uploadBtn.addEventListener('click', async () => {
-            if (!selectedFile || !currentUser) return;
-            els.uploadBtn.innerText = "...";
+            if (!file.type.startsWith('image/')) {
+                alert('画像ファイルを選択してください。');
+                return;
+            }
+
             try {
-                const storageRef = ref(storage, `users/${currentUser.uid}/profile.jpg`);
-                await uploadBytes(storageRef, selectedFile);
-                const photoURL = await getDownloadURL(storageRef);
-                await updateProfile(currentUser, { photoURL });
-                await updateDoc(doc(db, "users", currentUser.uid), { photoURL });
-                alert("更新しました");
-                location.reload();
-            } catch (e) {
-                alert("エラー: " + e.message);
+                uploadLoading.classList.remove('hidden');
+                const fileExt = file.name.split('.').pop();
+                const fileName = `profile_${Date.now()}.${fileExt}`;
+                const storageRef = ref(storage, `profile_images/${currentUser.uid}/${fileName}`);
+
+                await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(storageRef);
+                await updateProfile(currentUser, { photoURL: downloadURL });
+                profileImg.src = downloadURL + "?t=" + new Date().getTime();
+                alert("プロフィール画像を更新しました！");
+
+            } catch (error) {
+                console.error("Upload failed:", error);
+                alert("画像のアップロードに失敗しました。");
+            } finally {
+                uploadLoading.classList.add('hidden');
+                fileInput.value = '';
             }
         });
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            if(confirm('ログアウトしますか？')) signOut(auth).then(() => window.location.href = "index.html");
+        // ログアウト処理
+        logoutBtn.addEventListener('click', async () => {
+            if (confirm("ログアウトしますか？")) {
+                await signOut(auth);
+                window.location.href = "index.html";
+            }
         });
     </script>
 </body>

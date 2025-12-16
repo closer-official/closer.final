@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLOSER | Detail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { gold: '#C5A059', dark: '#111111' }, fontFamily: { cinzel: ['Cinzel', 'serif'], noto: ['Noto Serif JP', 'serif'] } }
+            }
+        }
+    </script>
+</head>
+<body class="bg-black text-white pb-20">
+    <header class="fixed top-0 w-full bg-black/90 backdrop-blur border-b border-gray-800 z-50 p-4 flex justify-between items-center">
+        <div class="text-xl font-cinzel text-gold tracking-widest cursor-pointer" onclick="window.history.back()">DETAIL</div>
+        <a href="timeline.html" class="alpha-btn">BACK</a>
+    </header>
+
+    <div class="container mx-auto px-4 pt-24 pb-10 max-w-2xl" id="detail-container">
+        <p class="text-center text-gray-600 mt-10">LOADING...</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
+            authDomain: "closer-official.firebaseapp.com",
+            projectId: "closer-official",
+            storageBucket: "closer-official.firebasestorage.app",
+            messagingSenderId: "1039215613610",
+            appId: "1:1039215613610:web:540ef7a026714e28dbe2d3",
+            measurementId: "G-LYK0THB2Z2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ★ 定数定義（要件定義書 1.3 準拠の簡易版）
+        const C_PRIOR = 5;          // C(信頼定数): 5 [cite: 5269]
+        const MU_AVERAGE = 3.0;     // μ(全体平均): 3.0 [cite: 5269]
+        // Cap_bonus (加点上限): 1.5 [cite: 5269] -> ロジックは別途実装
+        
+        // ★ 仮のランク重み（Phase 1 Rank-Weighted Voting代替）
+        // 本来はFirestoreから取得したユーザーランクに基づき決定 [cite: 5274, 5275]
+        // ログインユーザーのランク情報を取得できないため、ここでは固定値とする
+        const CURRENT_USER_VOTE_WEIGHT = 1.0; 
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+        let currentUserUid = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserUid = user.uid;
+                if(postId) loadPostDetail(postId);
+                else document.getElementById('detail-container').innerHTML = "<p>Post ID not found.</p>";
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        async function loadPostDetail(id) {
+            const container = document.getElementById('detail-container');
+            try {
+                const postRef = doc(db, "posts", id);
+                const postSnap = await getDoc(postRef);
+
+                if (!postSnap.exists()) {
+                    container.innerHTML = "<p class='text-center text-gray-500'>No such document!</p>";
+                    return;
+                }
+                const post = postSnap.data();
+
+                const voteRef = doc(db, "posts", id, "votes", currentUserUid);
+                const voteSnap = await getDoc(voteRef);
+                const myVote = voteSnap.exists() ? voteSnap.data().value : null;
+
+                const saveRef = doc(db, "users", currentUserUid, "saved_posts", id);
+                const saveSnap = await getDoc(saveRef);
+                const isSaved = saveSnap.exists();
+
+                renderDetail(post, id, myVote, isSaved);
+
+            } catch (e) {
+                console.error("Error:", e);
+                container.innerHTML = "<p class='text-center text-red-500'>Error loading post.</p>";
+            }
+        }
+
+        function renderDetail(post, docId, myVote, isSaved) {
+            const container = document.getElementById('detail-container');
+            
+            let dateStr = "Just now";
+            if (post.createdAt && typeof post.createdAt.toDate === 'function') {
+                dateStr = post.createdAt.toDate().toLocaleDateString('ja-JP');
+            }
+
+            const hasVoted = (myVote !== null);
+            
+            const authorImg = hasVoted 
+                ? (post.authorPhoto || "https://via.placeholder.com/40?text=U")
+                : "https://via.placeholder.com/40?text=?"; 
+            
+            const authorName = hasVoted 
+                ? (post.authorName || "Unknown") 
+                : "??? (VOTE TO SEE)";
+
+            const profileLink = hasVoted ? `href="profile.html?uid=${post.authorId}"` : `href="javascript:void(0)" style="cursor:default;"`;
+
+            // ★ スコア算出ロジック (簡易ベイジアン平均)
+            // totalScore => weightedTotalScore, voteCount => weightedVoteCount に置き換える
+            const totalWeightedScore = post.weightedTotalScore || (C_PRIOR * MU_AVERAGE);
+            const totalWeightedCount = post.weightedVoteCount || C_PRIOR; 
+
+            const averageScore = (totalWeightedScore / totalWeightedCount).toFixed(1);
+            
+            const scoreDisplay = hasVoted ? averageScore : "?.?";
+
+            let html = `
+                <div class="bg-dark border border-gray-800 p-6 rounded-sm">
+                    <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                        <a ${profileLink} class="flex items-center gap-3 group">
+                            <img src="${authorImg}" class="w-10 h-10 rounded-full border border-gray-700 object-cover ${hasVoted ? '' : 'opacity-50'}">
+                            <div>
+                                <div class="font-cinzel ${hasVoted ? 'text-gold' : 'text-gray-600'} text-sm tracking-wider">
+                                    ${escapeHtml(authorName)}
+                                </div>
+                                <div class="text-xs text-gray-500">${dateStr}</div>
+                            </div>
+                        </a>
+                        <div class="text-right">
+                            <span class="text-xs border border-gold text-gold px-2 py-1 font-cinzel block mb-1 text-center">${post.category.toUpperCase()}</span>
+                            <div class="text-[10px] text-gray-500 font-cinzel text-center">SCORE: <span class="${hasVoted ? 'text-white' : 'text-gray-600'} text-sm">${scoreDisplay}</span></div>
+                        </div>
+                    </div>
+            `;
+
+            if (post.category === 'spirit') {
+                html += `<div class="text-base text-gray-200 whitespace-pre-wrap leading-loose font-noto">${escapeHtml(post.solution)}</div>`;
+            } else {
+                html += `<div class="flex flex-wrap gap-2 mb-6">`;
+                const tags = [post.situation, post.target, post.price, post.industry];
+                tags.forEach(tag => {
+                    if(tag) html += `<span class="text-xs border border-gray-600 text-gray-400 px-3 py-1 rounded font-cinzel">${escapeHtml(tag)}</span>`;
+                });
+                html += `</div>`;
+
+                html += `
+                    <div class="mb-6">
+                        <div class="text-xs text-gold font-cinzel mb-2 border-l-2 border-gold pl-2">PROBLEM</div>
+                        <div class="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.problem)}</div>
+                    </div>
+                    <div class="mb-6 bg-black/50 p-4 border-l-2 border-gold">
+                        <div class="text-xs text-gold font-cinzel mb-2">SOLUTION</div>
+                        <div class="text-base text-white leading-relaxed whitespace-pre-wrap font-noto">${escapeHtml(post.solution)}</div>
+                    </div>
+                `;
+                if(post.explanation) {
+                    html += `
+                        <div class="mb-4">
+                            <div class="text-xs text-gold font-cinzel mb-2 border-l-2 border-gold pl-2">EXPLANATION</div>
+                            <div class="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.explanation)}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Footer (Rating & Save)
+            html += `
+                    <div class="mt-10 pt-6 border-t border-gray-800">
+                        <p class="text-center text-xs text-gray-500 mb-3 font-cinzel">EVALUATE THIS POST</p>
+                        
+                        <div class="grid grid-cols-4 gap-2 mb-4">
+                            <button class="rating-btn py-3 text-lg" onclick="submitRate(1)" ${hasVoted ? 'disabled' : ''} id="rate-1">1</button>
+                            <button class="rating-btn py-3 text-lg" onclick="submitRate(2)" ${hasVoted ? 'disabled' : ''} id="rate-2">2</button>
+                            <button class="rating-btn py-3 text-lg" onclick="submitRate(3)" ${hasVoted ? 'disabled' : ''} id="rate-3">3</button>
+                            <button class="rating-btn py-3 text-lg" onclick="submitRate(4)" ${hasVoted ? 'disabled' : ''} id="rate-4">4</button>
+                        </div>
+
+                        <button class="save-btn w-full py-3 text-sm font-cinzel tracking-wider ${isSaved ? 'saved' : ''}" id="btn-save" onclick="toggleSave()">
+                            ${isSaved ? 'SAVED' : 'SAVE TO ARCHIVE'}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            if(hasVoted) {
+                const selectedBtn = document.getElementById(`rate-${myVote}`);
+                if(selectedBtn) selectedBtn.classList.add('active');
+            }
+        }
+
+        // 評価送信（1回のみ）
+        window.submitRate = async (score) => {
+            if(!confirm(`スコア「${score}」で評価を確定しますか？\n※一度送信すると変更できません。`)) return;
+
+            try {
+                const postRef = doc(db, "posts", postId);
+                
+                // 1. サブコレクションに投票記録を作成
+                const voteRef = doc(db, "posts", postId, "votes", currentUserUid);
+                await setDoc(voteRef, {
+                    value: score,
+                    votedAt: new Date(),
+                    weight: CURRENT_USER_VOTE_WEIGHT // Phase 1 代替重み
+                });
+
+                // 2. 記事本体のスコア集計を更新 (重み付きスコアを使用)
+                const weightedScoreIncrement = score * CURRENT_USER_VOTE_WEIGHT;
+                const weightedCountIncrement = 1 * CURRENT_USER_VOTE_WEIGHT;
+
+                await updateDoc(postRef, {
+                    weightedVoteCount: increment(weightedCountIncrement),
+                    weightedTotalScore: increment(weightedScoreIncrement)
+                });
+
+                alert("評価しました。投稿者のプロフィールが開示されます。");
+                location.reload();
+
+            } catch (error) {
+                console.error("Rating Error:", error);
+                alert("評価の送信に失敗しました。");
+            }
+        };
+
+        // 保存切り替え
+        window.toggleSave = async () => {
+            const btn = document.getElementById('btn-save');
+            const isCurrentlySaved = btn.classList.contains('saved');
+            const saveRef = doc(db, "users", currentUserUid, "saved_posts", postId);
+
+            try {
+                if (isCurrentlySaved) {
+                    await deleteDoc(saveRef);
+                    btn.classList.remove('saved');
+                    btn.innerText = "SAVE TO ARCHIVE";
+                } else {
+                    await setDoc(saveRef, {
+                        savedAt: new Date(),
+                        postId: postId
+                    });
+                    btn.classList.add('saved');
+                    btn.innerText = "SAVED";
+                }
+            } catch (error) {
+                console.error("Save Error:", error);
+                alert("保存操作に失敗しました。");
+            }
+        };
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/[&<>"']/g, function(match) {
+                const escape = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
+                return escape[match];
+            });
+        }
+    </script>
+</body>
+</html>

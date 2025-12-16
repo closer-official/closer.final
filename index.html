@@ -3,110 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLOSER</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>CLOSER | MEMBERSHIP LOGIN</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwindの設定でカスタムカラーとフォントを定義
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#C5A059',
+                        dark: '#111111',
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        noto: ['Noto Serif JP', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* カスタムスタイル */
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Noto Serif JP', serif;
+        }
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        .login-button {
+            background-color: #C5A059;
+            color: #000;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            padding: 1rem 2rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            max-width: 320px;
+            letter-spacing: 0.1em;
+        }
+        .login-button:hover {
+            background-color: #b38f4d;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-black">
 
-    <div id="opening" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; display:flex; justify-content:center; align-items:center; pointer-events:none;">
-        <div id="opening-logo" class="gold-text" style="font-family:'Cinzel',serif; font-size:3rem; opacity:0; transition:opacity 1s;">CLOSER</div>
-    </div>
+    <div class="login-container">
+        <header class="flex justify-between items-center p-6">
+            <div class="text-3xl font-cinzel text-gold tracking-widest">CLOSER</div>
+            <button class="border border-gold text-gold font-cinzel px-4 py-2 text-sm tracking-wider hover:bg-gold hover:text-black transition">BLACK</button>
+        </header>
 
-    <header>
-        <div class="logo gold-text">CLOSER</div>
-        <a href="javascript:void(0)" class="alpha-btn" onclick="alert('Blackメンバーシップは招待制です')">BLACK</a>
-    </header>
+        <main class="main-content">
+            <h1 class="text-2xl md:text-3xl font-cinzel text-gold mb-8 tracking-widest">MEMBERSHIP LOGIN</h1>
+            <p class="text-gray-300 mb-4 leading-relaxed font-noto">
+                CLOSERは完全招待制のクローズド・コミュニティです。<br>
+                信頼されたGoogleアカウントで認証してください。
+            </p>
+            <button id="google-login-btn" class="login-button mt-8">
+                ENTER WITH GOOGLE
+            </button>
+        </main>
 
-    <div id="public-view">
-        <div class="hero">
-            <h1 class="fade-in">PROOF<br>OF<br><span class="gold-text">TALK</span></h1>
-            <p class="fade-in">営業の実力は、口で証明せよ。</p>
-        </div>
-
-        <div class="join-section fade-in">
-            <div class="container">
-                
-                <h2 class="gold-text" style="margin-bottom: 20px;">MEMBERSHIP LOGIN</h2>
-                <p style="margin-bottom: 40px; color: #888; line-height: 1.8;">
-                    CLOSERは完全招待制のクローズド・コミュニティです。<br>
-                    信頼されたGoogleアカウントで認証してください。
-                </p>
-
-                <button id="google-login-btn" class="btn btn-full btn-fill" style="max-width: 300px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
-                    ENTER WITH GOOGLE
-                </button>
-                <p id="loading-msg" style="color:var(--gold-color); display:none; margin-top:10px; text-align:center;">AUTHENTICATING...</p>
-
-            </div>
-        </div>
-
-        <footer style="padding: 30px; text-align: center; color: #333; font-size: 0.8rem;">
-            &copy; 2025 CLOSER Project.
+        <footer class="p-6 text-center text-gray-500 text-sm font-cinzel">
+            © 2025 CLOSER Project.
         </footer>
     </div>
 
-    <script src="js/main.js"></script>
-
     <script type="module">
-        import { auth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, db, doc, getDoc, setDoc, serverTimestamp } 
-        from "./js/firebase-config.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const loginBtn = document.getElementById('google-login-btn');
-        const loadingMsg = document.getElementById('loading-msg');
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
+            authDomain: "closer-official.firebaseapp.com",
+            projectId: "closer-official",
+            storageBucket: "closer-official.firebasestorage.app",
+            messagingSenderId: "1039215613610",
+            appId: "1:1039215613610:web:540ef7a026714e28dbe2d3",
+            measurementId: "G-LYK0THB2Z2"
+        };
 
-        // 1. ログイン状態の監視（すでにログイン済みなら移動）
-        onAuthStateChanged(auth, async (user) => {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // 1. ログイン状態の監視（すでにログイン済みならタイムラインへ）
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                // ユーザーがいる＝ログイン成功
-                if(loginBtn) loginBtn.style.display = 'none';
-                if(loadingMsg) loadingMsg.style.display = 'block';
-                
-                try {
-                    await handleUserDatabase(user);
-                    window.location.href = "timeline.html"; // 移動！
-                } catch (e) {
-                    console.error(e);
-                    alert("データベースエラー: " + e.message);
-                }
+                console.log("Already logged in. Redirecting to timeline.");
+                window.location.href = "timeline.html";
             }
         });
 
-        // 2. ボタンが押されたら「ポップアップ」を出す
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                const provider = new GoogleAuthProvider();
-                
-                // ★ここが重要：画面遷移させずにポップアップでログイン
-                signInWithPopup(auth, provider)
-                    .then((result) => {
-                        // 成功したら何もしなくてOK（上のonAuthStateChangedが勝手に動くため）
-                        console.log("Popup Login Success");
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        alert("ログインできませんでした。\n" + error.message);
-                    });
-            });
-        }
-
-        // ユーザー情報をDBに保存する関数
-        async function handleUserDatabase(user) {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-            if (!userSnap.exists()) {
-                await setDoc(userRef, {
-                    uid: user.uid,
-                    name: user.displayName,
-                    email: user.email,
-                    rank: "Standard",
-                    role: "Observer",
-                    score_act: 0,
-                    created_at: serverTimestamp()
-                });
+        // 2. Googleログインボタンのクリック処理
+        const loginButton = document.getElementById('google-login-btn');
+        loginButton.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, provider);
+                console.log("Login successful!");
+                // onAuthStateChangedが検知してリダイレクトします
+            } catch (error) {
+                console.error("Login failed:", error);
+                alert("ログインに失敗しました。");
             }
-        }
+        });
     </script>
 </body>
 </html>
