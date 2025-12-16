@@ -10,15 +10,48 @@
     <script>
         tailwind.config = {
             theme: {
-                extend: { colors: { gold: '#C5A059', dark: '#111111' }, fontFamily: { cinzel: ['Cinzel', 'serif'], noto: ['Noto Serif JP', 'serif'] } }
+                extend: { 
+                    colors: { gold: '#C5A059', dark: '#111111' }, 
+                    fontFamily: { cinzel: ['Cinzel', 'serif'], noto: ['Noto Serif JP', 'serif'] },
+                }
             }
         }
     </script>
+    <style>
+        .btn-selected {
+            background-color: #C5A059 !important;
+            color: #000 !important;
+            border-color: #C5A059 !important;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(197, 160, 89, 0.4);
+            pointer-events: none; /* 選択後は操作不可 */
+        }
+        /* 保存ボタンは解除可能にするためpointer-eventsは制御しないが、selectedクラスは共有 */
+        .btn-save-selected {
+            background-color: #C5A059 !important;
+            color: #000 !important;
+            border-color: #C5A059 !important;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(197, 160, 89, 0.4);
+        }
+        .btn-locked {
+            opacity: 0.3;
+            pointer-events: none; /* ロックされたボタン */
+            border-color: #333 !important;
+        }
+        .btn-inactive {
+            opacity: 0.6;
+        }
+        .btn-inactive:hover { opacity: 1.0; }
+        
+        .blind-blur { filter: blur(6px); user-select: none; transition: filter 0.5s ease; }
+        .blind-reveal { filter: blur(0); }
+    </style>
 </head>
 <body class="bg-black text-white pb-20">
     <header class="fixed top-0 w-full bg-black/90 backdrop-blur border-b border-gray-800 z-50 p-4 flex justify-between items-center">
-        <div class="text-xl font-cinzel text-gold tracking-widest cursor-pointer" onclick="window.history.back()">DETAIL</div>
-        <a href="timeline.html" class="alpha-btn">BACK</a>
+        <div class="text-xl font-cinzel text-gold tracking-widest">DETAILS</div>
+        <a href="timeline.html" class="border border-gold text-gold px-3 py-1 text-xs font-cinzel font-bold hover:bg-gold hover:text-black transition">BACK</a>
     </header>
 
     <div class="container mx-auto px-4 pt-24 pb-10 max-w-2xl" id="detail-container">
@@ -28,7 +61,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAmPN0z032Uo_ONsronn3smkIixRnBReJw",
@@ -44,110 +77,152 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ★ 定数定義（要件定義書 1.3 準拠の簡易版）
-        const C_PRIOR = 5;          // C(信頼定数): 5 [cite: 5269]
-        const MU_AVERAGE = 3.0;     // μ(全体平均): 3.0 [cite: 5269]
-        // Cap_bonus (加点上限): 1.5 [cite: 5269] -> ロジックは別途実装
-        
-        // ★ 仮のランク重み（Phase 1 Rank-Weighted Voting代替）
-        // 本来はFirestoreから取得したユーザーランクに基づき決定 [cite: 5274, 5275]
-        // ログインユーザーのランク情報を取得できないため、ここでは固定値とする
-        const CURRENT_USER_VOTE_WEIGHT = 1.0; 
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const postId = urlParams.get('id');
-        let currentUserUid = null;
+        let currentUser = null;
+        let currentPostId = null;
 
-        onAuthStateChanged(auth, (user) => {
+        // 状態管理用グローバル変数
+        let currentLogic = null; // 'useful' | 'not_useful' | null
+        let currentSaved = false;
+
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                currentUserUid = user.uid;
-                if(postId) loadPostDetail(postId);
-                else document.getElementById('detail-container').innerHTML = "<p>Post ID not found.</p>";
+                currentUser = user;
+                loadPost();
             } else {
                 window.location.href = "index.html";
             }
         });
 
-        async function loadPostDetail(id) {
+        async function loadPost() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentPostId = urlParams.get('id');
             const container = document.getElementById('detail-container');
-            try {
-                const postRef = doc(db, "posts", id);
-                const postSnap = await getDoc(postRef);
 
-                if (!postSnap.exists()) {
-                    container.innerHTML = "<p class='text-center text-gray-500'>No such document!</p>";
+            if (!currentPostId) {
+                container.innerHTML = "<p class='text-center text-red-500'>POST ID NOT FOUND</p>";
+                return;
+            }
+
+            try {
+                // 1. 投稿データ取得
+                const docRef = doc(db, "posts", currentPostId);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists()) {
+                    container.innerHTML = "<p class='text-center text-gray-500'>Post removed or not found.</p>";
                     return;
                 }
-                const post = postSnap.data();
+                const postData = docSnap.data();
 
-                const voteRef = doc(db, "posts", id, "votes", currentUserUid);
+                // 2. 自分の投票データ取得 (統合版 votes/{uid})
+                const voteRef = doc(db, "posts", currentPostId, "votes", currentUser.uid);
                 const voteSnap = await getDoc(voteRef);
-                const myVote = voteSnap.exists() ? voteSnap.data().value : null;
+                const myVoteData = voteSnap.exists() ? voteSnap.data() : null;
 
-                const saveRef = doc(db, "users", currentUserUid, "saved_posts", id);
-                const saveSnap = await getDoc(saveRef);
-                const isSaved = saveSnap.exists();
+                // ★初期状態をグローバル変数にセット (ここが修正ポイント)
+                if (myVoteData) {
+                    currentLogic = myVoteData.logic || null;
+                    currentSaved = myVoteData.saved || false;
+                } else {
+                    currentLogic = null;
+                    currentSaved = false;
+                }
 
-                renderDetail(post, id, myVote, isSaved);
+                renderPost(postData, container, myVoteData);
 
-            } catch (e) {
-                console.error("Error:", e);
-                container.innerHTML = "<p class='text-center text-red-500'>Error loading post.</p>";
+            } catch (error) {
+                console.error("Error loading post:", error);
+                container.innerHTML = "<p class='text-center text-red-500'>ERROR LOADING POST</p>";
             }
         }
 
-        function renderDetail(post, docId, myVote, isSaved) {
-            const container = document.getElementById('detail-container');
-            
+        function renderPost(post, container, voteData) {
             let dateStr = "Just now";
             if (post.createdAt && typeof post.createdAt.toDate === 'function') {
                 dateStr = post.createdAt.toDate().toLocaleDateString('ja-JP');
             }
-
-            const hasVoted = (myVote !== null);
             
-            const authorImg = hasVoted 
-                ? (post.authorPhoto || "https://via.placeholder.com/40?text=U")
-                : "https://via.placeholder.com/40?text=?"; 
-            
-            const authorName = hasVoted 
-                ? (post.authorName || "Unknown") 
-                : "??? (VOTE TO SEE)";
+            // ★ ブラインド判定: 評価(logic)があるか、またはSpiritでsavedMe済みか
+            const hasLogic = voteData && voteData.logic; 
+            const hasSpirit = post.category === 'spirit' && voteData && voteData.saved;
+            const isRevealed = hasLogic || hasSpirit;
 
-            const profileLink = hasVoted ? `href="profile.html?uid=${post.authorId}"` : `href="javascript:void(0)" style="cursor:default;"`;
+            const realAuthorName = post.authorName || "Unknown";
+            const realAuthorImg = post.authorPhoto || "https://via.placeholder.com/40?text=U";
+            const realScore = (post.score || 0).toFixed(1);
 
-            // ★ スコア算出ロジック (簡易ベイジアン平均)
-            // totalScore => weightedTotalScore, voteCount => weightedVoteCount に置き換える
-            const totalWeightedScore = post.weightedTotalScore || (C_PRIOR * MU_AVERAGE);
-            const totalWeightedCount = post.weightedVoteCount || C_PRIOR; 
+            const displayAuthorName = isRevealed ? realAuthorName : "SECRET";
+            const displayAuthorImg = isRevealed ? realAuthorImg : "https://via.placeholder.com/40?text=?";
+            const displayScore = isRevealed ? realScore : "???";
 
-            const averageScore = (totalWeightedScore / totalWeightedCount).toFixed(1);
-            
-            const scoreDisplay = hasVoted ? averageScore : "?.?";
+            const textClass = isRevealed ? "text-gold" : "text-gray-600";
 
             let html = `
-                <div class="bg-dark border border-gray-800 p-6 rounded-sm">
-                    <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-                        <a ${profileLink} class="flex items-center gap-3 group">
-                            <img src="${authorImg}" class="w-10 h-10 rounded-full border border-gray-700 object-cover ${hasVoted ? '' : 'opacity-50'}">
+                <div class="bg-dark border border-gray-800 p-6 rounded-sm relative">
+                    <div class="flex justify-between items-start mb-6 border-b border-gray-800 pb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-10 h-10 overflow-hidden rounded-full border border-gray-700">
+                                <img id="reveal-img" src="${displayAuthorImg}" 
+                                     class="w-full h-full object-cover transition-all duration-500 ${isRevealed ? '' : 'grayscale'}"
+                                     data-real-src="${realAuthorImg}">
+                            </div>
                             <div>
-                                <div class="font-cinzel ${hasVoted ? 'text-gold' : 'text-gray-600'} text-sm tracking-wider">
-                                    ${escapeHtml(authorName)}
+                                <div id="reveal-name" class="font-cinzel text-sm tracking-wider transition-all duration-500 ${isRevealed ? 'text-gold' : 'text-gray-500'}"
+                                     data-real-name="${escapeHtml(realAuthorName)}">
+                                    ${escapeHtml(displayAuthorName)}
                                 </div>
                                 <div class="text-xs text-gray-500">${dateStr}</div>
                             </div>
-                        </a>
+                        </div>
                         <div class="text-right">
-                            <span class="text-xs border border-gold text-gold px-2 py-1 font-cinzel block mb-1 text-center">${post.category.toUpperCase()}</span>
-                            <div class="text-[10px] text-gray-500 font-cinzel text-center">SCORE: <span class="${hasVoted ? 'text-white' : 'text-gray-600'} text-sm">${scoreDisplay}</span></div>
+                            <div class="text-xs text-gray-600 font-cinzel">SCORE: 
+                                <span id="reveal-score" class="text-lg font-bold transition-all duration-500 ${textClass}"
+                                      data-real-score="${realScore}">
+                                    ${displayScore}
+                                </span>
+                            </div>
                         </div>
                     </div>
             `;
 
             if (post.category === 'spirit') {
-                html += `<div class="text-base text-gray-200 whitespace-pre-wrap leading-loose font-noto">${escapeHtml(post.solution)}</div>`;
+                const isSaved = voteData && voteData.saved;
+                html += `
+                    <div class="text-base text-gray-200 whitespace-pre-wrap leading-loose mb-8">${escapeHtml(post.solution)}</div>
+                    <div class="flex justify-center mt-8">
+                        <button class="btn-spirit w-full py-4 text-base ${isSaved ? 'btn-save-selected' : 'btn-inactive'}" 
+                            onclick="handleSpiritVote(this)">
+                            SAVED ME (救われた) ★ <span class="count">${post.savedMe || 0}</span>
+                        </button>
+                    </div>
+                `;
             } else {
-                html += `<div class="flex flex-wrap gap-2 mb-6">`;
+                // Logic View
+                const logic = voteData ? voteData.logic : null; // 'useful' or 'not_useful' or null
+                const saved = voteData ? voteData.saved : false;
+
+                // クラス判定ロジック
+                // 1. Logicボタン: 一度押したら locked (btn-selected か btn-locked)
+                // 2. Saveボタン: 'not_useful' なら locked, それ以外なら toggle可能
+                
+                let usefulClass = "btn-inactive";
+                let uselessClass = "btn-inactive";
+                let saveClass = saved ? "btn-save-selected" : "btn-inactive";
+                let saveDisabled = false;
+
+                if (logic === 'useful') {
+                    usefulClass = "btn-selected"; // 選択済み＆ロック
+                    uselessClass = "btn-locked";  // ロック
+                    // Saveは押せる
+                } else if (logic === 'not_useful') {
+                    uselessClass = "btn-selected"; // 選択済み＆ロック
+                    usefulClass = "btn-locked";    // ロック
+                    saveClass = "btn-locked";      // ロック (保存不可)
+                    saveDisabled = true;
+                }
+
+                html += `
+                    <div class="flex flex-wrap gap-2 mb-6">`;
                 const tags = [post.situation, post.target, post.price, post.industry];
                 tags.forEach(tag => {
                     if(tag) html += `<span class="text-xs border border-gray-600 text-gray-400 px-3 py-1 rounded font-cinzel">${escapeHtml(tag)}</span>`;
@@ -156,108 +231,210 @@
 
                 html += `
                     <div class="mb-6">
-                        <div class="text-xs text-gold font-cinzel mb-2 border-l-2 border-gold pl-2">PROBLEM</div>
-                        <div class="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.problem)}</div>
+                        <div class="text-xs text-gold font-cinzel mb-2">PROBLEM</div>
+                        <div class="text-base text-gray-300 leading-relaxed whitespace-pre-wrap p-4 bg-black/50 rounded border border-gray-900">${escapeHtml(post.problem)}</div>
                     </div>
-                    <div class="mb-6 bg-black/50 p-4 border-l-2 border-gold">
+
+                    <div class="mb-6">
                         <div class="text-xs text-gold font-cinzel mb-2">SOLUTION</div>
-                        <div class="text-base text-white leading-relaxed whitespace-pre-wrap font-noto">${escapeHtml(post.solution)}</div>
+                        <div class="text-base text-white leading-loose whitespace-pre-wrap p-4 bg-gray-900/50 rounded border border-gray-700 font-noto">${escapeHtml(post.solution)}</div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <div class="text-xs text-gold font-cinzel mb-2">EXPLANATION</div>
+                        <div class="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap p-4 border-l-2 border-gray-700">${escapeHtml(post.explanation)}</div>
+                    </div>
+
+                    <div class="border-t border-gray-800 pt-6 mt-6">
+                        <p class="text-center text-xs text-gray-500 font-cinzel mb-4">EVALUATE TO UNLOCK SCORE</p>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button id="btn-useless" class="btn-logic py-3 text-sm hover:text-red-400 hover:border-red-400 transition-all ${uselessClass}" 
+                                onclick="handleLogicVote('not_useful', this)">
+                                使えない
+                            </button>
+                                
+                            <button id="btn-useful" class="btn-logic py-3 text-sm hover:text-blue-400 hover:border-blue-400 transition-all ${usefulClass}" 
+                                onclick="handleLogicVote('useful', this)">
+                                使える
+                            </button>
+                                
+                            <button id="btn-save" class="btn-logic py-3 text-sm hover:text-gold hover:border-gold transition-all ${saveClass}" 
+                                onclick="handleSaveVote(this)" ${saveDisabled ? 'disabled' : ''}>
+                                保存
+                            </button>
+                        </div>
                     </div>
                 `;
-                if(post.explanation) {
-                    html += `
-                        <div class="mb-4">
-                            <div class="text-xs text-gold font-cinzel mb-2 border-l-2 border-gold pl-2">EXPLANATION</div>
-                            <div class="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">${escapeHtml(post.explanation)}</div>
-                        </div>
-                    `;
-                }
             }
 
-            // Footer (Rating & Save)
-            html += `
-                    <div class="mt-10 pt-6 border-t border-gray-800">
-                        <p class="text-center text-xs text-gray-500 mb-3 font-cinzel">EVALUATE THIS POST</p>
-                        
-                        <div class="grid grid-cols-4 gap-2 mb-4">
-                            <button class="rating-btn py-3 text-lg" onclick="submitRate(1)" ${hasVoted ? 'disabled' : ''} id="rate-1">1</button>
-                            <button class="rating-btn py-3 text-lg" onclick="submitRate(2)" ${hasVoted ? 'disabled' : ''} id="rate-2">2</button>
-                            <button class="rating-btn py-3 text-lg" onclick="submitRate(3)" ${hasVoted ? 'disabled' : ''} id="rate-3">3</button>
-                            <button class="rating-btn py-3 text-lg" onclick="submitRate(4)" ${hasVoted ? 'disabled' : ''} id="rate-4">4</button>
-                        </div>
-
-                        <button class="save-btn w-full py-3 text-sm font-cinzel tracking-wider ${isSaved ? 'saved' : ''}" id="btn-save" onclick="toggleSave()">
-                            ${isSaved ? 'SAVED' : 'SAVE TO ARCHIVE'}
-                        </button>
-                    </div>
-                </div>
-            `;
-
+            html += `</div>`;
             container.innerHTML = html;
+        }
 
-            if(hasVoted) {
-                const selectedBtn = document.getElementById(`rate-${myVote}`);
-                if(selectedBtn) selectedBtn.classList.add('active');
+        // Logicボタン用ハンドラ
+        window.handleLogicVote = async (logicType, btn) => {
+            if (!currentUser || !currentPostId) return;
+            // ロックチェック
+            if (btn.classList.contains('btn-locked') || btn.classList.contains('btn-selected')) return;
+
+            // UI即時更新
+            const uselessBtn = document.getElementById('btn-useless');
+            const usefulBtn = document.getElementById('btn-useful');
+            const saveBtn = document.getElementById('btn-save');
+
+            // 1. Logic状態の確定
+            if (logicType === 'not_useful') {
+                uselessBtn.classList.add('btn-selected');
+                usefulBtn.classList.add('btn-locked');
+                usefulBtn.classList.remove('btn-inactive');
+                // 排他制御: 使えないなら保存不可
+                saveBtn.classList.remove('btn-save-selected', 'btn-inactive');
+                saveBtn.classList.add('btn-locked');
+                saveBtn.disabled = true;
+                currentSaved = false; // 強制オフ
+            } else {
+                usefulBtn.classList.add('btn-selected');
+                uselessBtn.classList.add('btn-locked');
+                uselessBtn.classList.remove('btn-inactive');
+                // 使えるなら保存は可能（現状維持）
+            }
+            currentLogic = logicType;
+
+            // 情報開示
+            revealInfo();
+
+            // スコア計算とDB更新を実行
+            await executeVoteUpdate();
+        };
+
+        // Saveボタン用ハンドラ
+        window.handleSaveVote = async (btn) => {
+            if (!currentUser || !currentPostId) return;
+            if (btn.classList.contains('btn-locked')) return;
+
+            // Toggle
+            const isSelected = btn.classList.contains('btn-save-selected');
+            if (isSelected) {
+                btn.classList.remove('btn-save-selected');
+                btn.classList.add('btn-inactive');
+                currentSaved = false;
+            } else {
+                btn.classList.add('btn-save-selected');
+                btn.classList.remove('btn-inactive');
+                currentSaved = true;
+            }
+
+            await executeVoteUpdate();
+        };
+
+        // Spirit用
+        window.handleSpiritVote = async (btn) => {
+             if (!currentUser || !currentPostId) return;
+             if (btn.classList.contains('btn-save-selected')) return; // 重複防止
+
+             btn.classList.add('btn-save-selected');
+             btn.classList.remove('btn-inactive');
+             currentSaved = true; // SpiritではLogicがないのでSavedのみ
+
+             revealInfo();
+             await executeVoteUpdate(true);
+        };
+
+
+        // 統合DB更新ロジック
+        async function executeVoteUpdate(isSpirit = false) {
+            try {
+                // 1. 現在の投票データを取得 (Old Score計算用)
+                const voteRef = doc(db, "posts", currentPostId, "votes", currentUser.uid);
+                const voteSnap = await getDoc(voteRef);
+                const oldData = voteSnap.exists() ? voteSnap.data() : { logic: null, saved: false, value: 0 };
+                
+                // 初回ロード時の変数がloadPostで初期化されているので、
+                // 強制的な上書きロジック（以下）は削除またはコメントアウトします。
+                // これにより「保存解除したのに強制的にtrueに戻る」バグを修正。
+                /*
+                if (currentLogic === null && !isSpirit) currentLogic = oldData.logic;
+                if (currentSaved === false && oldData.saved) currentSaved = true; 
+                */
+
+                // 2. 新しいスコア値の決定
+                let newValue = 0;
+                
+                if (isSpirit) {
+                    newValue = 10; // Spiritの固定点 (仮)
+                } else {
+                    // Logic Logic
+                    // 優先順位: 保存(5.0) > 使える(4.5) > 使えない(1.5)
+                    if (currentSaved) {
+                        newValue = 5.0; // 保存があれば5.0採用
+                    } else if (currentLogic === 'useful') {
+                        newValue = 4.5; // 保存解除されたら使えるの点数
+                    } else if (currentLogic === 'not_useful') {
+                        newValue = 1.5;
+                    }
+                }
+
+                // 3. 差分計算
+                const oldValue = oldData.value || 0;
+                const diff = newValue - oldValue;
+
+                // 4. Voteデータ保存
+                const newVoteData = {
+                    uid: currentUser.uid,
+                    logic: currentLogic,
+                    saved: currentSaved,
+                    value: newValue,
+                    updatedAt: serverTimestamp()
+                };
+                // Spiritの場合はtypeも含める
+                if(isSpirit) newVoteData.type = 'spirit';
+
+                await setDoc(voteRef, newVoteData);
+
+                // 5. Post本体更新 (カウンタ & スコア)
+                const postRef = doc(db, "posts", currentPostId);
+                const updates = {
+                    score: increment(diff)
+                };
+
+                // カウンタ制御: 保存状態が変化した場合のみ増減
+                if (currentSaved !== oldData.saved) {
+                    if (isSpirit) {
+                        updates.savedMe = increment(currentSaved ? 1 : -1);
+                    } else {
+                        updates.saves = increment(currentSaved ? 1 : -1);
+                    }
+                }
+                
+                await updateDoc(postRef, updates);
+
+            } catch (error) {
+                console.error("Vote Transaction Failed:", error);
             }
         }
 
-        // 評価送信（1回のみ）
-        window.submitRate = async (score) => {
-            if(!confirm(`スコア「${score}」で評価を確定しますか？\n※一度送信すると変更できません。`)) return;
-
-            try {
-                const postRef = doc(db, "posts", postId);
-                
-                // 1. サブコレクションに投票記録を作成
-                const voteRef = doc(db, "posts", postId, "votes", currentUserUid);
-                await setDoc(voteRef, {
-                    value: score,
-                    votedAt: new Date(),
-                    weight: CURRENT_USER_VOTE_WEIGHT // Phase 1 代替重み
-                });
-
-                // 2. 記事本体のスコア集計を更新 (重み付きスコアを使用)
-                const weightedScoreIncrement = score * CURRENT_USER_VOTE_WEIGHT;
-                const weightedCountIncrement = 1 * CURRENT_USER_VOTE_WEIGHT;
-
-                await updateDoc(postRef, {
-                    weightedVoteCount: increment(weightedCountIncrement),
-                    weightedTotalScore: increment(weightedScoreIncrement)
-                });
-
-                alert("評価しました。投稿者のプロフィールが開示されます。");
-                location.reload();
-
-            } catch (error) {
-                console.error("Rating Error:", error);
-                alert("評価の送信に失敗しました。");
-            }
-        };
-
-        // 保存切り替え
-        window.toggleSave = async () => {
-            const btn = document.getElementById('btn-save');
-            const isCurrentlySaved = btn.classList.contains('saved');
-            const saveRef = doc(db, "users", currentUserUid, "saved_posts", postId);
-
-            try {
-                if (isCurrentlySaved) {
-                    await deleteDoc(saveRef);
-                    btn.classList.remove('saved');
-                    btn.innerText = "SAVE TO ARCHIVE";
-                } else {
-                    await setDoc(saveRef, {
-                        savedAt: new Date(),
-                        postId: postId
-                    });
-                    btn.classList.add('saved');
-                    btn.innerText = "SAVED";
+        function revealInfo() {
+            const imgEl = document.getElementById('reveal-img');
+            const nameEl = document.getElementById('reveal-name');
+            const scoreEl = document.getElementById('reveal-score');
+            
+            if (scoreEl && scoreEl.innerText === "???") {
+                if(imgEl && imgEl.dataset.realSrc) {
+                    imgEl.src = imgEl.dataset.realSrc;
+                    imgEl.classList.remove('grayscale');
                 }
-            } catch (error) {
-                console.error("Save Error:", error);
-                alert("保存操作に失敗しました。");
+                if(nameEl && nameEl.dataset.realName) {
+                    nameEl.innerText = nameEl.dataset.realName;
+                    nameEl.classList.remove('text-gray-500');
+                    nameEl.classList.add('text-gold');
+                }
+                if(scoreEl && scoreEl.dataset.realScore) {
+                    scoreEl.innerText = scoreEl.dataset.realScore;
+                    scoreEl.classList.remove('text-gray-600');
+                    scoreEl.classList.add('text-gold');
+                }
             }
-        };
+        }
 
         function escapeHtml(str) {
             if (!str) return "";

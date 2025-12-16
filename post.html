@@ -81,16 +81,21 @@
                     <div class="text-left">
                         <label class="block text-gold text-xs mb-1">INDUSTRY (業界)</label>
                         <select id="p-industry" class="input-field text-sm" style="height: 45px; padding: 0 10px;">
-                            <option value="IT/Web">1. IT・通信・Web</option>
-                            <option value="Energy">2. 環境・エネルギー</option>
-                            <option value="RealEstate">3. 不動産・建設</option>
-                            <option value="Finance">4. 金融・保険</option>
-                            <option value="HR">5. 人材・教育・HR</option>
-                            <option value="Ad/Marketing">6. 広告・出版</option>
-                            <option value="Manufacturing">7. 自動車・製造</option>
-                            <option value="Consulting">8. コンサル・専門職</option>
-                            <option value="Retail">9. 小売・生活関連</option>
-                            <option value="Other">10. その他</option>
+                            <option value="IT_Web">1. IT・通信・Web</option>
+                            <option value="Adv_Media">2. 広告・メディア・出版</option>
+                            <option value="HR_Edu">3. 人材・教育</option>
+                            <option value="Finance">4. 金融・保険・証券</option>
+                            <option value="RealEstate">5. 不動産・建設・設備</option>
+                            <option value="Consulting">6. コンサル・士業</option>
+                            <option value="Manufacturing">7. メーカー (製造・機械)</option>
+                            <option value="Trading">8. 商社・卸売</option>
+                            <option value="Retail_Service">9. 小売・飲食・店舗サービス</option>
+                            <option value="Medical">10. 医療・福祉・製薬</option>
+                            <option value="Beauty">11. 美容・ファッション</option>
+                            <option value="Energy">12. 環境・エネルギー・インフラ</option>
+                            <option value="Logistics">13. 物流・運送</option>
+                            <option value="Entertainment">14. エンタメ・イベント</option>
+                            <option value="Other">15. その他</option>
                         </select>
                     </div>
                 </div>
@@ -155,7 +160,7 @@
         // UI要素
         const categorySelect = document.getElementById('p-category');
         const logicSection = document.getElementById('logic-section');
-        const explanationSection = document.getElementById('explanation-section'); // 追加
+        const explanationSection = document.getElementById('explanation-section'); 
         
         const sitInput = document.getElementById('p-situation');
         const targetInput = document.getElementById('p-target');
@@ -165,7 +170,7 @@
         
         const solLabel = document.getElementById('label-solution');
         const solInput = document.getElementById('p-solution');
-        const explInput = document.getElementById('p-explanation'); // 追加
+        const explInput = document.getElementById('p-explanation');
 
         // モーダル要素
         const termModal = document.getElementById('term-modal');
@@ -178,22 +183,22 @@
             if(e.target.value === 'spirit') {
                 // SPIRIT選択時: 詳細項目と解説を隠す
                 logicSection.style.display = 'none';
-                explanationSection.style.display = 'none'; // 解説も隠す
+                explanationSection.style.display = 'none';
                 
                 sitInput.required = false;
                 probInput.required = false;
-                explInput.required = false; // 必須解除
+                explInput.required = false;
 
                 solLabel.innerText = "FREE TEXT (自由記述)";
                 solInput.placeholder = "想いやマインドセットを自由に記述してください...";
             } else {
                 // その他: 詳細項目と解説を表示
                 logicSection.style.display = 'block';
-                explanationSection.style.display = 'block'; // 解説表示
+                explanationSection.style.display = 'block';
 
                 sitInput.required = true;
                 probInput.required = true;
-                explInput.required = true; // 必須化
+                explInput.required = true;
 
                 solLabel.innerText = "SOLUTION (トークスクリプト)";
                 solInput.placeholder = "「社長、実はそのコストですが...」";
@@ -229,7 +234,6 @@
             }
 
             const category = categorySelect.value;
-            // SPIRITの場合、不要なフィールドは空文字にする
             const isSpirit = (category === 'spirit');
             
             const situation = isSpirit ? "" : sitInput.value;
@@ -237,7 +241,7 @@
             const price = isSpirit ? "" : priceInput.value;
             const industry = isSpirit ? "" : industryInput.value;
             const problem = isSpirit ? "" : probInput.value;
-            const explanation = isSpirit ? "" : explInput.value; // 解説も保存
+            const explanation = isSpirit ? "" : explInput.value;
             const solution = solInput.value;
 
             try {
@@ -245,6 +249,7 @@
                 btn.disabled = true;
                 const postId = "post_" + Date.now();
 
+                // 修正: LogicスコアとSavedMeカウンタを初期化
                 await setDoc(doc(db, "posts", postId), {
                     postId: postId,
                     authorId: user.uid,
@@ -257,8 +262,11 @@
                     industry: industry,
                     problem: problem,
                     solution: solution,
-                    explanation: explanation, // 解説を追加
-                    likes: 0,
+                    explanation: explanation,
+                    score: 0,       // 評価スコア (Logic用)
+                    savedMe: 0,     // 救われた数 (Spirit用)
+                    saves: 0,       // 保存数 (Logic用)
+                    likes: 0,       // 互換性のため残す
                     createdAt: serverTimestamp()
                 });
                 window.location.href = "timeline.html"; 
