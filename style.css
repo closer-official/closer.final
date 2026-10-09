@@ -28,3 +28,5 @@ header{min-height:98px;padding-top:28px}.hero{padding:38px 0 24px}.editorial{pad
 
 .product-page .quality-scene img{max-height:380px;object-fit:contain}
 .corporate-data-source{flex-basis:100%;margin:16px 0 0;font-size:12px;line-height:1.8}
+
+.has-order-cta footer{flex-wrap:wrap}
