@@ -38,3 +38,6 @@ header{min-height:98px;padding-top:28px}.hero{padding:38px 0 24px}.editorial{pad
 
 .product-page .corporate-note{font-size:13px;color:#666;margin:28px 0}.product-page .corporate-note h2{font-size:15px}.product-page .comparison-wrap table{min-width:640px;table-layout:fixed}.product-page .comparison-wrap th,.product-page .comparison-wrap td{overflow-wrap:anywhere}
 @media(max-width:700px){.product-page .comparison-wrap table{min-width:580px}.product-page .comparison-wrap th,.product-page .comparison-wrap td{padding:12px 10px;font-size:13px}}
+
+/* Owner Preview review: visible feature details and readable bottom notes. */
+.product-page .comparison-details{margin-top:28px}.product-page .comparison-details h3{margin:0 0 16px}.has-order-cta .mobile-order-bar span{font-size:12px}.has-order-cta .corporate-data-source{font-size:12px;line-height:1.85;max-width:100%}
