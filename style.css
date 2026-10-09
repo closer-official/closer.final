@@ -30,3 +30,11 @@ header{min-height:98px;padding-top:28px}.hero{padding:38px 0 24px}.editorial{pad
 .corporate-data-source{flex-basis:100%;margin:16px 0 0;font-size:12px;line-height:1.8}
 
 .has-order-cta footer{flex-wrap:wrap}
+
+.brand-page p,.product-page p,.order-page p{max-width:48rem;line-height:1.85;overflow-wrap:anywhere}
+.brand-page h1,.product-page h1,.order-page h1{text-wrap:balance}
+.customer-detail{margin:18px 0}.customer-detail summary{cursor:pointer;min-height:44px;display:flex;align-items:center}.customer-detail p{margin:12px 0}
+@media(max-width:700px){.brand-page .lead,.product-page .lead{font-size:17px;line-height:1.85}.brand-perspectives{gap:24px}.customer-detail{margin:16px 0}}
+
+.product-page .corporate-note{font-size:13px;color:#666;margin:28px 0}.product-page .corporate-note h2{font-size:15px}.product-page .comparison-wrap table{min-width:640px;table-layout:fixed}.product-page .comparison-wrap th,.product-page .comparison-wrap td{overflow-wrap:anywhere}
+@media(max-width:700px){.product-page .comparison-wrap table{min-width:580px}.product-page .comparison-wrap th,.product-page .comparison-wrap td{padding:12px 10px;font-size:13px}}
