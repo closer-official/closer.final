@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "dataset": "nationwide_corporate_basic_info_staging",
+  "count": 5840885,
+  "includesClosed": true,
+  "closedCount": 785547,
+  "verifiedAt": "2026-10-08T05:55:47.552770+00:00",
+  "latestAppliedDate": "2026-10-06",
+  "snapshotHash": "3fc9d513b461ddcd2b90a4541c7204d5e5cdc31731bc347f31820c4287272859",
+  "scheduledUpdatesConfigured": false,
+  "source": {
+    "name": "国税庁法人番号公表サイト（公開データを加工）",
+    "url": "https://www.houjin-bangou.nta.go.jp/download/zenken/",
+    "evidenceReference": "nta-aggregate-20261006-3fc9d513b461ddcd"
+  },
+  "verification": {
+    "status": "verified",
+    "method": "python-row-count",
+    "reviewReference": "PUBLIC-NTA-REVIEW-20261008"
+  }
+}
