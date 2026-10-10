@@ -1,4 +1,4 @@
-const previewConditionsVersion='initial-orders-2026-10-10-v1';
+const previewConditionsVersion='initial-orders-2026-10-10-v2';
 import {calculateEstimate} from './pricing.js';
 import {classifyPaymentAmount} from './payment-amount.js';
 const $=id=>document.getElementById(id),key='closer-preview-order-config-v1';let step=1,busy=false;const allowed={target:['closer'],copy:['bring','common'],shortage:['supplement','list_only']};
